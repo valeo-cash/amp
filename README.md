@@ -32,6 +32,14 @@ const amp = new AMPClient({
 const res = await amp.fetch("https://api.example.com/v1/data");
 ```
 
+## Ecosystem
+
+- **MCP Transport** — native support for paid AI agent tool calls via JSON-RPC. Per-tool pricing, automatic channel management.
+- **Service Registry** — on-chain directory of AMP-enabled services. Agents discover services by category, price, and reputation.
+- **Multi-Channel Netting** — Stratum integration batches settlements across all channels in a netting cycle. 60-80% fewer on-chain transactions at scale.
+- **On-Chain Reputation** — deterministic trust scores derived from channel history. No oracle, no subjective rating. Enables tiered pricing.
+- **Channel Chaining** — agent supply chains. A service forwards upstream channel budget to downstream services, creating value chains that settle in one cycle.
+
 ## Documentation
 
 - [Protocol Specification](SPEC.md) — full technical spec with on-chain architecture, message formats, and transport bindings
@@ -41,7 +49,7 @@ const res = await amp.fetch("https://api.example.com/v1/data");
 
 ## Status
 
-**Draft — v0.1**
+**Draft — v0.2**
 
 ## License
 

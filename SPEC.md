@@ -1,6 +1,6 @@
 # AMP Protocol Specification
 
-**Version**: 0.1 (Draft)
+**Version**: 0.2 (Draft)
 **Status**: Draft
 **Authors**: Valeo Protocol
 **Date**: 2026-03-25
@@ -19,6 +19,11 @@
 8. [Error Codes](#8-error-codes)
 9. [SDK API Surface](#9-sdk-api-surface)
 10. [Comparison with x402 and MPP](#10-comparison-with-x402-and-mpp)
+11. [MCP Transport Binding](#11-mcp-transport-binding)
+12. [Service Registry](#12-service-registry)
+13. [Multi-Channel Netting via Stratum](#13-multi-channel-netting-via-stratum)
+14. [On-Chain Reputation](#14-on-chain-reputation)
+15. [Channel Chaining](#15-channel-chaining)
 
 ---
 
@@ -339,11 +344,17 @@ After closure, the channel PDA is no longer valid. The server MUST reject any su
 
 ## 4. On-Chain Architecture
 
-### 4.1 Program
+### 4.1 Programs
 
-**Program ID**: `AMPxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` (placeholder — final address assigned at deployment)
+The AMP ecosystem consists of three on-chain programs:
 
-The AMP program is a Solana program (Anchor-compatible) that manages channel state, token custody, and settlement verification.
+| Program | Program ID (placeholder) | Description |
+|---------|--------------------------|-------------|
+| `amp-channel` | `AMPxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` | Channel state, token custody, settlement verification |
+| `amp-registry` | `AMPREGxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` | Service directory and discovery |
+| `amp-reputation` | `AMPREPxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` | On-chain reputation scoring |
+
+Final addresses are assigned at deployment. All programs are Anchor-compatible.
 
 ### 4.2 ChannelState Account
 
@@ -376,8 +387,15 @@ The ChannelState account is a PDA that stores all state for a single channel.
 | delegate | Option\<Pubkey\> | 202 | 33 | Optional delegated consumer (1 byte tag + 32 bytes pubkey) |
 | delegate_limit | u64 | 235 | 8 | Max amount delegate can consume |
 | delegate_consumed | u64 | 243 | 8 | Amount delegate has consumed |
+| stratum_enabled | bool | 251 | 1 | Whether channel opts into multilateral netting (Section 13) |
+| stratum_cycle | i64 | 252 | 8 | Netting cycle interval in seconds |
+| stratum_authority | Option\<Pubkey\> | 260 | 33 | Stratum netting engine pubkey, authorized to call settle |
+| parent_channel | Option\<Pubkey\> | 293 | 33 | Upstream channel PDA for chained channels (Section 15) |
+| child_channels | u8 | 326 | 1 | Number of active downstream channels |
+| max_chain_depth | u8 | 327 | 1 | Maximum allowed chain depth (default: 3) |
+| chain_depth | u8 | 328 | 1 | Current depth in the chain (0 = root) |
 
-**Total account size:** 8 (discriminator) + 243 = **251 bytes**
+**Total account size:** 8 (discriminator) + 321 = **329 bytes**
 
 The 8-byte discriminator is prepended by Anchor and identifies the account type.
 
@@ -450,7 +468,7 @@ Settles accumulated usage by transferring funds from the vault to the recipient.
 
 | Account | Signer | Mutable | Description |
 |---------|--------|---------|-------------|
-| recipient | Yes | Yes | Channel recipient (submits settlement) |
+| settler | Yes | Yes | Channel recipient OR stratum_authority (submits settlement) |
 | channel_state | No | Yes | ChannelState PDA |
 | vault | No | Yes | Channel vault token account |
 | recipient_token_account | No | Yes | Recipient's token account (destination) |
@@ -468,7 +486,7 @@ Settles accumulated usage by transferring funds from the vault to the recipient.
 - `amount` MUST be less than or equal to `balance`.
 - `current_time` MUST be greater than or equal to `last_settle_ts + settle_interval`.
 - The `metering_proof` signature MUST be valid against the `recipient` pubkey (verified via Ed25519 precompile).
-- `channel_state.recipient` MUST equal the `recipient` account.
+- `settler` MUST be either `channel_state.recipient` OR `channel_state.stratum_authority` (if set). This allows Stratum to settle on behalf of the recipient during netting cycles (see Section 13).
 
 #### 4.3.4 `close_channel`
 
@@ -522,6 +540,43 @@ Assigns or updates a delegate on the channel.
 - Channel `status` MUST be `Active` (0).
 - `limit` MUST be less than or equal to `balance`.
 - `channel_state.funder` MUST equal the `funder` account.
+
+#### 4.3.6 `chain_channel`
+
+Creates a downstream channel funded from an upstream channel's vault. See Section 15 for full semantics.
+
+**Accounts:**
+
+| Account | Signer | Mutable | Description |
+|---------|--------|---------|-------------|
+| upstream_recipient | Yes | No | Recipient of the upstream channel (caller) |
+| upstream_channel | No | Yes | Upstream ChannelState PDA |
+| upstream_vault | No | Yes | Upstream channel vault (source of funds) |
+| downstream_recipient | No | No | Recipient of the new downstream channel |
+| downstream_channel | No | Yes | Downstream ChannelState PDA (init) |
+| downstream_vault | No | Yes | Downstream vault token account (init) |
+| mint | No | No | SPL token mint |
+| system_program | No | No | System Program |
+| token_program | No | No | SPL Token Program |
+| associated_token_program | No | No | Associated Token Program |
+| rent | No | No | Rent sysvar |
+
+**Arguments:**
+
+| Argument | Type | Description |
+|----------|------|-------------|
+| amount | u64 | Amount to allocate from upstream to downstream |
+| rate_limit | u64 | Rate limit for downstream channel |
+| settle_interval | i64 | Settlement interval for downstream channel |
+| nonce | u64 | Nonce for downstream channel PDA derivation |
+
+**Constraints:**
+- `upstream_recipient` MUST equal `upstream_channel.recipient`.
+- Upstream channel `status` MUST be `Active` (0).
+- `amount` MUST be less than or equal to `upstream_channel.balance`.
+- `upstream_channel.chain_depth` MUST be less than `upstream_channel.max_chain_depth`.
+- The downstream channel PDA is derived with seeds: `[b"amp-channel", upstream_channel (as funder), downstream_recipient, nonce_le_bytes]`.
+- On success: `upstream_channel.balance -= amount`, `upstream_channel.child_channels += 1`, downstream channel is initialized with `chain_depth = upstream_channel.chain_depth + 1` and `parent_channel = upstream_channel`.
 
 ---
 
@@ -587,7 +642,7 @@ The server verifies this signature off-chain using the funder's pubkey (from the
 
 ## 6. Transport Bindings
 
-AMP is transport agnostic. This section defines how AMP metadata is carried on each supported transport.
+AMP is transport agnostic. This section defines how AMP metadata is carried on each supported transport. MCP (Model Context Protocol) is covered separately in Section 11 due to its importance in the AI agent ecosystem.
 
 ### 6.1 HTTP
 
@@ -994,7 +1049,7 @@ AMP:   1,000 calls → ~3 on-chain txns (open + settle + close) + 1,000 off-chai
 | Core Primitive | HTTP 402 receipt | HTTP 402 challenge/credential framework | Solana PDA financial state channel |
 | Runtime Latency | Per-call (payment + retry) | Per-call (charge) / near-zero (session vouchers) | Zero after channel open |
 | Statefulness | Stateless | Stateless (charge) / stateful (session) | Persistent on-chain state |
-| Transport | HTTP only | HTTP + MCP/JSON-RPC | HTTP + WebSocket + gRPC + MQTT + TCP |
+| Transport | HTTP only | HTTP + MCP/JSON-RPC | HTTP + WebSocket + gRPC + MQTT + TCP + MCP |
 | Chain / Network | Base (EVM) | Tempo (primary), Solana, Lightning, cards, Stripe | Solana native (direct, no intermediary) |
 | Settlement | Immediate per-call | Per-call (charge) / per-channel (session) | Net cleared at intervals (1 tx per period) |
 | On-chain Txns / 1K calls | 1,000 | 2 (session: open + close) | ~3 (open + settle + close) |
@@ -1004,6 +1059,11 @@ AMP:   1,000 calls → ~3 on-chain txns (open + settle + close) + 1,000 off-chai
 | Delegation | None | None | Native (delegate instruction) |
 | On-chain Composability | Limited (EVM) | Varies by payment method | Full Solana DeFi (PDA is readable/composable) |
 | Fiat Support | No | Yes (Stripe, cards) | No (crypto-native) |
+| MCP Support | No | Native transport binding | Native (Section 11) |
+| Service Discovery | No | No | On-chain registry (Section 12) |
+| Multi-channel Netting | No | No | Stratum integration (Section 13) |
+| On-chain Reputation | No | No | Native scoring (Section 14) |
+| Supply Chain Channels | No | No | Channel chaining (Section 15) |
 
 ### 10.3 Key Differentiators
 
@@ -1013,8 +1073,580 @@ MPP sessions and AMP channels are comparable in transaction efficiency. The diff
 2. **Net settlement.** AMP settles net amounts at intervals via signed metering proofs. MPP sessions use cumulative vouchers settled at channel close.
 3. **Delegation.** AMP's `delegate` instruction enables on-chain agent-to-agent budget forwarding. MPP has no equivalent mechanism.
 4. **Credit readiness.** AMP's channel model supports credit extension via reputation-based deposit reduction. MPP requires upfront deposits.
-5. **Transport breadth.** AMP defines bindings for gRPC, MQTT, and raw TCP in addition to HTTP. MPP covers HTTP and MCP/JSON-RPC.
+5. **Transport breadth.** AMP defines bindings for MCP, gRPC, MQTT, and raw TCP in addition to HTTP and WebSocket. MPP covers HTTP and MCP/JSON-RPC.
 6. **Payment method flexibility.** MPP supports multiple payment methods (Tempo, Stripe, cards, Lightning, Solana). AMP is Solana-only. This is a trade-off, not an advantage.
+
+---
+
+## 11. MCP Transport Binding
+
+MCP (Model Context Protocol) is a JSON-RPC 2.0 protocol used by AI agent frameworks for tool invocation. AMP MUST support MCP as a first-class transport, enabling paid tool calls with per-tool pricing.
+
+### 11.1 Discovery via MCP
+
+An AMP-enabled MCP server MUST advertise pricing via a dedicated `amp/pricing` JSON-RPC method:
+
+**Request:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "amp/pricing",
+  "id": 1
+}
+```
+
+**Response:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "amp_version": "1.0",
+    "recipient": "<server_pubkey_base58>",
+    "program_id": "<amp_program_id_base58>",
+    "network": "solana:mainnet-beta",
+    "pricing": {
+      "default": {
+        "mode": "per-call",
+        "rate": "1000",
+        "token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "min_deposit": "1000000",
+        "settle_interval": 3600
+      },
+      "tools": {
+        "generate_image": { "mode": "per-call", "rate": "50000" },
+        "search_web": { "mode": "per-call", "rate": "5000" },
+        "stream_data": { "mode": "per-second", "rate": "1000" }
+      }
+    }
+  },
+  "id": 1
+}
+```
+
+The `pricing.tools` object maps MCP tool names to their pricing. Each tool MAY have its own rate and mode. If a tool is not listed, the `default` pricing applies.
+
+The server MAY also advertise pricing in individual tool descriptions via the `tools/list` response.
+
+### 11.2 Channel Reference in Tool Calls
+
+When calling a paid MCP tool, the client MUST include AMP credentials in the `_amp` field of the JSON-RPC `params` object:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "generate_image",
+    "arguments": { "prompt": "a cat in space" },
+    "_amp": {
+      "channel": "<channel_pda_base58>",
+      "seq": 42,
+      "sig": "<ed25519_sig_base58>"
+    }
+  },
+  "id": 2
+}
+```
+
+The `_amp` field is a reserved namespace. MCP servers that do not support AMP MUST ignore fields prefixed with `_`. The `channel`, `seq`, and `sig` fields follow the same semantics as the HTTP headers defined in Section 3.3.
+
+### 11.3 Payment Required Response
+
+If a tool call lacks valid AMP credentials, the server MUST respond with a JSON-RPC error containing AMP pricing in the `data` field:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "error": {
+    "code": -32602,
+    "message": "AMP_NO_CHANNEL",
+    "data": {
+      "amp_pricing": {
+        "mode": "per-call",
+        "rate": "50000",
+        "token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "min_deposit": "1000000",
+        "recipient": "<server_pubkey_base58>",
+        "program_id": "<amp_program_id_base58>"
+      }
+    }
+  },
+  "id": 2
+}
+```
+
+The JSON-RPC error code MUST be `-32602` (Invalid Params). The `message` field MUST be an AMP error code from Section 8. The `data.amp_pricing` object provides the client with all information needed to open a channel.
+
+### 11.4 Tool Call Response with Balance
+
+On a successful paid tool call, the server SHOULD include remaining channel balance in the result:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [{ "type": "text", "text": "..." }],
+    "_amp": {
+      "balance": "4950000",
+      "seq": 42
+    }
+  },
+  "id": 2
+}
+```
+
+### 11.5 Server SDK for MCP
+
+```typescript
+import { AMPMcpServer } from "@valeo/amp-server/mcp";
+
+const server = new AMPMcpServer({
+  wallet: serverKeypair,
+  tools: {
+    generate_image: {
+      description: "Generate an image from a text prompt",
+      pricing: { mode: "per-call", rate: "50000" },
+      inputSchema: {
+        type: "object",
+        properties: { prompt: { type: "string" } },
+        required: ["prompt"],
+      },
+      handler: async (args, ampContext) => {
+        // ampContext.channel — channel PDA address
+        // ampContext.seq — current sequence number
+        // ampContext.balance — remaining channel balance
+        return { image_url: "https://..." };
+      },
+    },
+  },
+});
+
+server.listen();
+```
+
+### 11.6 Client SDK for MCP
+
+```typescript
+import { AMPMcpClient } from "@valeo/amp-client/mcp";
+
+const client = new AMPMcpClient({
+  wallet: agentKeypair,
+  budget: 5.0,
+  token: "USDC",
+});
+
+await client.connect("stdio:///path/to/mcp-server");
+
+const result = await client.callTool("generate_image", {
+  prompt: "a cat in space",
+});
+
+await client.close();
+```
+
+The client SDK handles discovery (`amp/pricing`), channel open, credential attachment, and sequence management automatically. The `connect` method accepts `stdio://` and `http+sse://` connection strings.
+
+---
+
+## 12. Service Registry
+
+The AMP Service Registry is a Solana program that maintains a directory of AMP-enabled services. Any service provider MAY register. Agents query the registry to discover services by category, price, and reputation.
+
+### 12.1 Registry Program
+
+**Program:** `amp-registry`
+
+**ServiceEntry Account** (PDA):
+
+```
+Seeds: [b"amp-service", provider_pubkey]
+```
+
+**Fields:**
+
+| Field | Type | Size | Description |
+|-------|------|------|-------------|
+| bump | u8 | 1 | PDA bump seed |
+| provider | Pubkey | 32 | Service provider's pubkey (= channel recipient) |
+| endpoint | String | 128 | Service URL or MCP connection string |
+| category | u8 | 1 | Service category enum |
+| pricing_mode | u8 | 1 | 0=per-call, 1=per-second, 2=per-byte, 3=per-compute, 4=custom |
+| rate | u64 | 8 | Cost per unit in token smallest unit |
+| token | Pubkey | 32 | SPL token mint accepted |
+| min_deposit | u64 | 8 | Minimum channel deposit |
+| settle_interval | i64 | 8 | Settlement interval in seconds |
+| description | String | 256 | Human/agent-readable service description |
+| tags | \[u8; 8\] | 8 | Up to 8 tag IDs for searchability |
+| reputation_score | u64 | 8 | Derived from channel history (Section 14) |
+| total_channels | u64 | 8 | Lifetime channels opened with this service |
+| total_settled | u64 | 8 | Lifetime volume settled (token smallest unit) |
+| active_channels | u32 | 4 | Currently active channels |
+| registered_at | i64 | 8 | Registration Unix timestamp |
+| last_updated | i64 | 8 | Last update Unix timestamp |
+| active | bool | 1 | Whether service is currently available |
+
+**Total account size:** 8 (discriminator) + 528 bytes = **536 bytes**
+
+### 12.2 Service Categories
+
+| Value | Category | Description |
+|-------|----------|-------------|
+| 0 | Inference | LLM, image generation, embeddings |
+| 1 | Data | Search, scraping, enrichment |
+| 2 | Compute | GPU, serverless, batch processing |
+| 3 | Storage | IPFS, Arweave, S3-compatible |
+| 4 | Communication | Email, SMS, notifications |
+| 5 | Financial | Pricing, market data, trading |
+| 6 | Identity | KYC, verification, attestation |
+| 7 | Other | Uncategorized |
+
+### 12.3 Instructions
+
+#### 12.3.1 `register_service`
+
+Registers a new service in the directory.
+
+**Arguments:** `endpoint` (String), `category` (u8), `pricing_mode` (u8), `rate` (u64), `token` (Pubkey), `min_deposit` (u64), `settle_interval` (i64), `description` (String), `tags` ([u8; 8])
+
+**Accounts:** `provider` (signer, mut), `service_entry` (init, PDA), `system_program`
+
+**Constraints:**
+- The provider MUST be the signer.
+- The ServiceEntry PDA MUST NOT already exist for this provider.
+- Registration requires a small SOL deposit (rent-exempt minimum) as an anti-spam measure.
+
+#### 12.3.2 `update_service`
+
+Updates any field on an existing ServiceEntry.
+
+**Constraints:**
+- Only the `provider` (original signer) MAY call this instruction.
+- The `last_updated` field is set to the current block timestamp.
+
+#### 12.3.3 `deactivate_service`
+
+Marks a service as inactive (`active = false`). Does NOT close the account — historical data is preserved.
+
+**Constraints:**
+- Only the `provider` MAY call this instruction.
+
+#### 12.3.4 `close_service`
+
+Closes the ServiceEntry account and returns rent to the provider.
+
+**Constraints:**
+- Only the `provider` MAY call this instruction.
+- `active_channels` MUST be 0.
+
+### 12.4 Querying the Registry
+
+Agents query the registry off-chain by deserializing ServiceEntry accounts using `getProgramAccounts` with filters:
+
+```typescript
+import { AMPRegistry } from "@valeo/amp-client";
+
+const services = await AMPRegistry.search({
+  category: "inference",
+  maxRate: "10000",
+  token: "USDC",
+  minReputation: 5000,
+  sortBy: "reputation",
+});
+
+for (const svc of services) {
+  console.log(`${svc.endpoint} — rate: ${svc.rate} — score: ${svc.reputation_score}`);
+}
+```
+
+The client SDK provides convenience filters. Under the hood, it calls `getProgramAccounts` with `memcmp` filters on the `category`, `token`, and `active` fields, then applies client-side filtering and sorting.
+
+### 12.5 Registry Statistics Updates
+
+The `amp-channel` program MAY send a Cross-Program Invocation (CPI) to `amp-registry` to keep service statistics accurate:
+
+- On `open_channel`: increment `total_channels` and `active_channels` for the recipient's ServiceEntry.
+- On `settle`: increment `total_settled` by the settlement amount.
+- On `close_channel`: decrement `active_channels`.
+
+This keeps registry data current without requiring the service provider to manually update statistics. The CPI is optional — channels function correctly even if the recipient is not registered.
+
+---
+
+## 13. Multi-Channel Netting via Stratum
+
+AMP channels MAY opt into multilateral netting through Valeo Stratum. Instead of each channel settling independently, Stratum aggregates all settlements across all opted-in channels in a netting cycle and produces the minimum set of on-chain transfers.
+
+### 13.1 Why Netting Matters
+
+Without netting (individual settlement):
+- Agent A owes Service B: 5,000,000 units
+- Agent A owes Service C: 3,000,000 units
+- Service C owes Agent A: 2,000,000 units (refund/rebate)
+- Total: 3 settlement transactions
+
+With netting:
+- Net: Agent A owes Service B: 5,000,000 units. Agent A owes Service C: 1,000,000 units (3,000,000 - 2,000,000).
+- Total: 2 settlement transactions
+
+At scale (100 agents, 100 services, 1,000 channels), the reduction is typically 60-80% fewer on-chain transactions.
+
+### 13.2 Stratum-Enabled Channels
+
+When opening a channel, the funder MAY set `stratum_enabled = true` on the ChannelState. The `stratum_cycle` field defines the netting interval in seconds. The `stratum_authority` field specifies the Stratum netting engine's pubkey, which is authorized to call `settle` on behalf of the recipient (see Section 4.3.3).
+
+```typescript
+const channel = await amp.openChannel({
+  to: serviceB.pubkey,
+  deposit: 10.0,
+  stratumEnabled: true,
+  stratumCycle: 3600,
+});
+```
+
+When `stratum_enabled` is true:
+- Individual `settle` calls by the recipient are still permitted.
+- Additionally, the `stratum_authority` MAY call `settle` with aggregated metering proofs at each netting cycle.
+- Stratum calculates net obligations across all opted-in channels and submits the minimum set of `settle` instructions.
+
+### 13.3 Netting Engine Architecture
+
+```
+Agent A ──── Channel 1 ──── Service B
+         ├── Channel 2 ──── Service C
+         └── Channel 3 ──── Service D
+
+All metering proofs ──→ Stratum Netting Engine
+                              │
+                        Net Calculation
+                              │
+                  Minimum Settlement Set
+                              │
+                        Solana Program
+                       (batched settle)
+```
+
+The Stratum netting engine is an off-chain service operated by Valeo. It:
+
+1. Collects metering proofs from all opted-in channels during a netting cycle.
+2. Runs a multilateral netting algorithm to compute net obligations.
+3. Produces a `NettingResult`: the minimum set of `(from_channel, to_recipient, amount)` transfers.
+4. Submits batched `settle` instructions to the AMP program.
+5. All channel states are updated in one netting cycle.
+
+### 13.4 Netting Result Format
+
+The netting engine produces the following structure:
+
+```json
+{
+  "cycle_id": "uuid",
+  "cycle_start": 1711234567,
+  "cycle_end": 1711238167,
+  "channels_included": 47,
+  "settlements": [
+    {
+      "channel": "<channel_pda_base58>",
+      "amount": 4500000,
+      "metering_proof": "<serialized_proof>"
+    }
+  ],
+  "total_gross": 12000000,
+  "total_net": 7500000,
+  "reduction_pct": 37.5
+}
+```
+
+### 13.5 Security Considerations
+
+- The `stratum_authority` is set by the funder at channel open or via a separate `set_stratum` instruction. Only the funder MAY change this field.
+- Stratum can only call `settle` — it cannot close channels, modify balances directly, or change channel parameters.
+- Each `settle` call still requires a valid metering proof signed by the recipient. Stratum aggregates proofs but does not forge them.
+- If Stratum is unavailable, channels fall back to normal per-channel settlement by the recipient.
+
+---
+
+## 14. On-Chain Reputation
+
+AMP includes a reputation system derived from channel history. Reputation scores are computed on-chain from verifiable settlement data. No external oracle or subjective rating — the score is a deterministic function of channel activity.
+
+### 14.1 Reputation Program
+
+**Program:** `amp-reputation`
+
+**ReputationAccount** (PDA):
+
+```
+Seeds: [b"amp-reputation", entity_pubkey]
+```
+
+**Fields:**
+
+| Field | Type | Size | Description |
+|-------|------|------|-------------|
+| bump | u8 | 1 | PDA bump seed |
+| entity | Pubkey | 32 | The agent or service being scored |
+| total_channels_opened | u64 | 8 | Lifetime channels (as funder or recipient) |
+| total_channels_completed | u64 | 8 | Channels closed cleanly (no dispute) |
+| total_volume | u64 | 8 | Lifetime settlement volume (token smallest unit) |
+| total_settlements | u64 | 8 | Number of successful settlements |
+| dispute_count | u64 | 8 | Number of channels closed with dispute |
+| avg_channel_duration | i64 | 8 | Average channel lifetime in seconds |
+| longest_streak | u64 | 8 | Longest consecutive clean settlements |
+| current_streak | u64 | 8 | Current consecutive clean settlements |
+| score | u64 | 8 | Computed reputation score (0-10000) |
+| last_updated | i64 | 8 | Last score update Unix timestamp |
+
+**Total account size:** 8 (discriminator) + 113 bytes = **121 bytes**
+
+### 14.2 Score Calculation
+
+The score is computed on-chain via a deterministic formula:
+
+```
+base_score = (total_channels_completed / total_channels_opened) * 5000
+
+volume_bonus = min(log2(total_volume / 1_000_000) * 500, 2500)
+
+streak_bonus = min(current_streak * 50, 1500)
+
+dispute_penalty = dispute_count * 500
+
+score = clamp(base_score + volume_bonus + streak_bonus - dispute_penalty, 0, 10000)
+```
+
+- `base_score`: Completion ratio scaled to 0-5000. An entity that completes all channels cleanly gets 5000.
+- `volume_bonus`: Logarithmic scaling of total volume settled. 1 USDC = 0 bonus. 1,000 USDC = ~2,500 bonus (capped).
+- `streak_bonus`: Linear reward for consecutive clean settlements. 10 = 500 bonus. 30+ = 1,500 (capped).
+- `dispute_penalty`: 500 points deducted per dispute.
+
+Score range: 0 to 10,000. Higher is better.
+
+### 14.3 Reputation Updates via CPI
+
+The `amp-channel` program calls `amp-reputation` via CPI on the following events:
+
+| Event | CPI Action |
+|-------|------------|
+| `open_channel` | Increment `total_channels_opened` for both funder and recipient |
+| `settle` | Increment `total_settlements`, add to `total_volume`, extend `current_streak` |
+| `close_channel` (clean) | Increment `total_channels_completed`, update `avg_channel_duration` |
+| `close_channel` (dispute) | Increment `dispute_count`, reset `current_streak` to 0 |
+
+A "dispute" close is defined as a close where the funder and the metering proof disagree — specifically, where the funder closes the channel and the `final_amount` in the close instruction is less than the server's last submitted metering proof amount. The on-chain program detects this by comparing the close instruction's `final_amount` against `total_consumed + accumulated_since_last_settle`.
+
+### 14.4 Reputation-Based Pricing
+
+Services MAY offer tiered pricing based on agent reputation. The server publishes tiers in its discovery response:
+
+```json
+{
+  "pricing": {
+    "default": { "mode": "per-call", "rate": "10000" },
+    "reputation_tiers": [
+      { "min_score": 5000, "rate": "8000" },
+      { "min_score": 8000, "rate": "5000" },
+      { "min_score": 9500, "rate": "3000" }
+    ]
+  }
+}
+```
+
+The server SDK reads the agent's ReputationAccount on-chain during channel validation and applies the highest matching tier. An agent with score 8500 would receive the 8000-tier rate of 5,000 units per call.
+
+### 14.5 Reputation in the Registry
+
+The `amp-registry` ServiceEntry's `reputation_score` field is populated from the service provider's ReputationAccount. Agents querying the registry can filter by minimum reputation, ensuring they only interact with proven services.
+
+The registry MAY refresh `reputation_score` from the ReputationAccount periodically via a `refresh_reputation` instruction on `amp-registry`.
+
+---
+
+## 15. Channel Chaining
+
+Channel chaining enables agent supply chains where a service can open downstream channels funded by an upstream channel. Value flows through the chain and settles via the normal settlement process or through Stratum netting.
+
+### 15.1 The Problem
+
+```
+Agent A ──$10──> Service B (inference API)
+                    │
+                    ├── needs Service C (GPU compute) — costs $3
+                    └── needs Service D (data source) — costs $1
+
+Without chaining: Service B needs its own capital to pay C and D.
+With chaining: Service B forwards from Agent A's channel.
+```
+
+An agent calls Service B, which needs to call Service C and Service D to fulfill the request. Without chaining, Service B must fund its own channels to C and D using its own capital. With chaining, Service B creates downstream channels funded from Agent A's upstream channel deposit.
+
+### 15.2 Chain Instruction
+
+The `chain_channel` instruction (Section 4.3.6) creates a new downstream ChannelState PDA funded from an upstream channel's vault.
+
+**Key semantics:**
+- The caller MUST be the recipient of the upstream channel.
+- Funds transfer from the upstream vault to the new downstream vault.
+- The downstream channel's `parent_channel` field points to the upstream PDA.
+- The upstream channel's `balance` is reduced by the chained amount.
+- The upstream channel's `child_channels` count is incremented.
+
+### 15.3 Chain Depth Limits
+
+- `chain_depth` MUST be strictly less than `max_chain_depth` to create a downstream channel.
+- The default `max_chain_depth` is 3, supporting chains of: Agent -> Service -> Sub-service -> Sub-sub-service.
+- The funder of the root channel MAY set `max_chain_depth` at channel open. Lower values restrict chaining; `max_chain_depth = 0` disables chaining entirely.
+
+### 15.4 Settlement in Chains
+
+Downstream channels settle independently. When a downstream channel settles, funds flow from the downstream vault to the downstream recipient. The upstream channel's balance was already reduced when the downstream channel was created (funds transferred to downstream vault).
+
+With Stratum netting, the entire chain settles in one cycle:
+
+1. Service B's metering with Agent A -> net owed
+2. Service C's metering with Service B -> net owed
+3. Service D's metering with Service B -> net owed
+4. Stratum nets all obligations: minimum transfers executed
+
+### 15.5 Closing Chained Channels
+
+Closing works bottom-up:
+1. Leaf channels (no children) MUST be closed first.
+2. A channel with `child_channels > 0` MUST NOT be closed until all downstream channels are closed.
+3. When a downstream channel closes, its `parent_channel`'s `child_channels` count is decremented.
+4. Remaining balance from a closed downstream channel returns to the upstream vault (not to the downstream channel's funder, since the funds originated from the upstream channel).
+
+### 15.6 Security in Chains
+
+- Only the upstream recipient can create downstream channels. The upstream funder cannot — this prevents unauthorized fund forwarding.
+- Each downstream channel is an independent PDA. The downstream recipient cannot access the upstream vault directly.
+- The upstream funder (Agent A) can discover all downstream channels by scanning for ChannelState PDAs with `parent_channel` pointing to their channel.
+- Chain depth limits prevent infinite or excessively deep chains.
+- The upstream funder retains the ability to close the upstream channel, which requires all downstream channels to be closed first — giving the funder ultimate control over fund recovery.
+
+### 15.7 Example: Agent Supply Chain
+
+```typescript
+// Service B receives a request and needs GPU compute from Service C
+const downstreamChannel = await serviceB.chainChannel({
+  upstream: agentAChannel,
+  to: serviceCPubkey,
+  amount: 3_000_000,       // 3 USDC from Agent A's channel
+  rateLimit: 1_000_000,
+  settleInterval: 3600,
+});
+
+// Service B calls Service C using the downstream channel
+const gpuResult = await downstreamChannel.fetch(
+  "https://gpu-service.com/v1/compute",
+  { method: "POST", body: requestPayload }
+);
+
+// Agent A's $10 channel now has:
+//   $7 available for direct use by Service B
+//   $3 allocated to Service C via chain
+```
 
 ---
 

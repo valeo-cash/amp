@@ -128,7 +128,7 @@ sequenceDiagram
 | Core Primitive | HTTP 402 receipt | HTTP 402 challenge/credential framework | Solana PDA financial state channel |
 | Runtime Latency | Per-call (payment + retry) | Per-call (charge) / near-zero (session vouchers) | Zero after channel open |
 | Statefulness | Stateless | Stateless (charge) / stateful (session) | Persistent on-chain state |
-| Transport | HTTP only | HTTP + MCP/JSON-RPC | HTTP + WebSocket + gRPC + MQTT + TCP |
+| Transport | HTTP only | HTTP + MCP/JSON-RPC | HTTP + WebSocket + gRPC + MQTT + TCP + MCP |
 | Chain / Network | Base (EVM) | Tempo (primary), Solana, Lightning, cards, Stripe | Solana native (direct, no intermediary) |
 | Settlement | Immediate per-call | Per-call (charge) / per-channel (session) | Net cleared at intervals (1 tx per period) |
 | On-chain Txns / 1K calls | 1,000 | 2 (session: open + close) + voucher overhead | ~3 (open + settle + close) |
@@ -140,8 +140,12 @@ sequenceDiagram
 | On-chain Composability | Limited (EVM) | Varies by payment method | Full Solana DeFi (PDA is readable/composable) |
 | IETF Standardization | No | Yes (paymentauth.org) | No (open spec on GitHub) |
 | SDK Languages | TypeScript | TypeScript, Python, Rust | TypeScript (planned: Python, Rust) |
-| MCP Support | Limited | Native transport binding | Planned |
+| MCP Support | No | Native transport binding | Native (per-tool pricing via JSON-RPC) |
 | Fiat Support | No | Yes (Stripe, cards) | No (crypto-native) |
+| Service Discovery | No | No | On-chain registry (agents query by category/price/reputation) |
+| Multi-channel Netting | No | No | Stratum integration (60-80% fewer settlement txns at scale) |
+| On-chain Reputation | No | No | Native scoring (deterministic, derived from channel history) |
+| Supply Chain Channels | No | No | Channel chaining (agent-to-service-to-service value flow) |
 
 ---
 
@@ -169,9 +173,13 @@ sequenceDiagram
 - You need high-volume usage with minimal on-chain footprint and deterministic settlement costs (net clearing means settlement cost is independent of call volume within an interval).
 - You need agent-to-agent budget delegation — a funder delegates a portion of their channel to a sub-agent, enforced on-chain.
 - You want credit-backed channels where agents can open channels without full upfront capital (via Valeo ACE).
-- You need transport bindings beyond HTTP and MCP — gRPC metadata, MQTT 5.0 user properties, raw TCP CBOR envelopes.
+- You need transport bindings beyond HTTP — MCP (per-tool pricing), gRPC metadata, MQTT 5.0 user properties, WebSocket, raw TCP CBOR envelopes.
 - You want on-chain channel state that other Solana programs can read, compose with, and build on top of — the ChannelState PDA is a first-class Solana account.
 - You want to settle directly on Solana without routing through an intermediary network.
+- You need on-chain service discovery — agents query a registry by category, price, and reputation to find services programmatically.
+- You need multi-channel netting — Stratum batches settlements across all channels, reducing on-chain transactions by 60-80% at scale.
+- You need on-chain reputation scoring — deterministic trust scores from channel history that enable tiered pricing and credit.
+- You need agent supply chains — channel chaining lets services forward upstream budget to downstream services without their own capital.
 
 ---
 
