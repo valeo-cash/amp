@@ -970,84 +970,51 @@ The client SDK:
 
 ## 10. Comparison with x402 and MPP
 
+For a detailed comparison with sequence diagrams and cost analysis, see [COMPARISON.md](COMPARISON.md).
+
 ### 10.1 Protocol Flow Comparison
 
-**x402 flow (per request):**
+**x402** uses HTTP 402 with per-request payments on Base. Each call requires a payment transaction, a retry with a receipt, and on-chain verification. One on-chain transaction per call.
+
+**MPP** defines two intents: `charge` (per-request, similar to x402) and `session` (payment channels with off-chain vouchers). MPP sessions open a channel once, then use cumulative off-chain vouchers for subsequent requests — conceptually similar to AMP's channel model. MPP is payment-method agnostic, supporting Tempo, Stripe, cards, Lightning, and Solana.
+
+**AMP** opens a Solana-native channel once, then serves requests with zero on-chain cost. Settlement is net-cleared at intervals — one transaction covers all usage in a period regardless of call count.
 
 ```
-Client                  Server                  Base L2
-  |--- GET /api -------->|                        |
-  |<-- 402 + payment req-|                        |
-  |                      |                        |
-  |  [sign payment]      |                        |
-  |                      |                        |
-  |--- GET /api -------->|                        |
-  |   + payment header   |                        |
-  |                      |--- verify payment ---->|
-  |                      |<-- confirmed ----------|
-  |<-- 200 + data -------|                        |
+x402:  1,000 calls → 1,000 on-chain txns
+MPP:   1,000 calls → 2 on-chain txns (session open + close) + 1,000 off-chain vouchers
+AMP:   1,000 calls → ~3 on-chain txns (open + settle + close) + 1,000 off-chain metered calls
 ```
-
-Three round-trips per call. One on-chain transaction per call.
-
-**AMP flow:**
-
-```
-Client                  Server                  Solana
-  |--- open_channel tx -------------------------------->|
-  |<-- confirmed ---------------------------------------|
-  |                      |                        |
-  |--- GET /api -------->|                        |
-  |   + AMP-Channel      |  [off-chain verify]   |
-  |   + AMP-Seq          |  [meter locally]       |
-  |   + AMP-Sig          |                        |
-  |<-- 200 + data -------|                        |
-  |                      |                        |
-  |--- GET /api -------->|                        |
-  |   + AMP-Channel      |  [off-chain verify]   |
-  |   + AMP-Seq          |  [meter locally]       |
-  |   + AMP-Sig          |                        |
-  |<-- 200 + data -------|                        |
-  |         ...          |                        |
-  |                      |--- settle tx --------->|
-  |                      |<-- confirmed ----------|
-```
-
-One round-trip per call after channel open. 1-3 on-chain transactions total regardless of call count.
 
 ### 10.2 Feature Matrix
 
 | Feature | x402 | MPP | AMP |
 |---------|------|-----|-----|
-| Payment Model | Per-request | Per-request | Continuous channel |
-| Core Primitive | HTTP 402 code | Payment routing | Financial state channel |
-| Runtime Latency | Every call | Every call | Zero after open |
-| Statefulness | Stateless | Stateless | Persistent state |
-| Transport | HTTP only | HTTP only | Any (HTTP/WS/gRPC/MQTT/TCP) |
-| Chain | Base (EVM) | Multi-chain | Solana native |
-| Settlement | Immediate per-call | Routed | Net cleared on interval |
-| On-chain Txns / 1K calls | 1,000 | ~100-500 | 1-3 |
-| Finality | ~2s (Base) | Varies | 400ms (Solana) |
-| Credit Support | None | None | Native (ACE) |
-| Reputation / Trust | None | None | Built-in scoring |
-| Streaming Data | Not supported | Not supported | Native |
-| Channel Delegation | Not possible | Not possible | Supported |
-| Budget Management | Manual per-call | Manual | Deposit once, auto |
-| Integration Effort | Middleware / route | SDK + config | One-line middleware |
-| Agent UX | Sign every call | Sign every call | Open once, use freely |
-| Multi-party Splits | Manual | Built-in routing | Channel composition |
-| DeFi Composability | Limited | Limited | Full Solana |
+| Payment Model | Per-request only | Per-request (charge) + sessions (pay-as-you-go) | Persistent channels with net settlement |
+| Core Primitive | HTTP 402 receipt | HTTP 402 challenge/credential framework | Solana PDA financial state channel |
+| Runtime Latency | Per-call (payment + retry) | Per-call (charge) / near-zero (session vouchers) | Zero after channel open |
+| Statefulness | Stateless | Stateless (charge) / stateful (session) | Persistent on-chain state |
+| Transport | HTTP only | HTTP + MCP/JSON-RPC | HTTP + WebSocket + gRPC + MQTT + TCP |
+| Chain / Network | Base (EVM) | Tempo (primary), Solana, Lightning, cards, Stripe | Solana native (direct, no intermediary) |
+| Settlement | Immediate per-call | Per-call (charge) / per-channel (session) | Net cleared at intervals (1 tx per period) |
+| On-chain Txns / 1K calls | 1,000 | 2 (session: open + close) | ~3 (open + settle + close) |
+| Payment Methods | USDC on Base | Multi-method (Tempo, Stripe, cards, Lightning, Solana) | USDC (SPL) on Solana |
+| Streaming Support | None | SSE with voucher renewal | Native (any transport) |
+| Credit Support | None | None | Native (ACE integration ready) |
+| Delegation | None | None | Native (delegate instruction) |
+| On-chain Composability | Limited (EVM) | Varies by payment method | Full Solana DeFi (PDA is readable/composable) |
+| Fiat Support | No | Yes (Stripe, cards) | No (crypto-native) |
 
-### 10.3 Cost Analysis
+### 10.3 Key Differentiators
 
-For 1,000 API calls at $0.001 per call ($1.00 total payment):
+MPP sessions and AMP channels are comparable in transaction efficiency. The differences are architectural:
 
-| Protocol | On-chain Transactions | Avg Txn Cost | Total Gas Cost |
-|----------|-----------------------|--------------|----------------|
-| x402 (Base) | 1,000 | ~$0.001 | ~$1.00 |
-| AMP (Solana) | 3 (open + settle + close) | ~$0.00025 | ~$0.00075 |
-
-AMP is approximately **1,333x cheaper** in transaction costs for 1,000 calls.
+1. **Solana-native state.** AMP's ChannelState PDA is a first-class Solana account. Other programs can read it, compose with it in CPIs, and build on top of it. MPP's channel state lives on whatever underlying payment network is negotiated.
+2. **Net settlement.** AMP settles net amounts at intervals via signed metering proofs. MPP sessions use cumulative vouchers settled at channel close.
+3. **Delegation.** AMP's `delegate` instruction enables on-chain agent-to-agent budget forwarding. MPP has no equivalent mechanism.
+4. **Credit readiness.** AMP's channel model supports credit extension via reputation-based deposit reduction. MPP requires upfront deposits.
+5. **Transport breadth.** AMP defines bindings for gRPC, MQTT, and raw TCP in addition to HTTP. MPP covers HTTP and MCP/JSON-RPC.
+6. **Payment method flexibility.** MPP supports multiple payment methods (Tempo, Stripe, cards, Lightning, Solana). AMP is Solana-only. This is a trade-off, not an advantage.
 
 ---
 
