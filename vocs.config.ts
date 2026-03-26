@@ -4,9 +4,8 @@ export default defineConfig({
   title: "AMP",
   titleTemplate: "%s — AMP Protocol",
   description: "Persistent payment channels for AI agents on Solana",
-  basePath: "/docs",
-  logoUrl: "/docs/logo.svg",
-  iconUrl: "/docs/favicon.svg",
+  logoUrl: "/logo.svg",
+  iconUrl: "/favicon.svg",
   rootDir: "docs",
   baseUrl: "https://amp.valeoprotocol.io",
   editLink: {
