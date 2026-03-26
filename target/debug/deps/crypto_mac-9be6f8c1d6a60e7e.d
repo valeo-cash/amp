@@ -1,0 +1,8 @@
+/Users/idealmac/amp/target/debug/deps/crypto_mac-9be6f8c1d6a60e7e.d: /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crypto-mac-0.8.0/src/lib.rs /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crypto-mac-0.8.0/src/errors.rs
+
+/Users/idealmac/amp/target/debug/deps/libcrypto_mac-9be6f8c1d6a60e7e.rlib: /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crypto-mac-0.8.0/src/lib.rs /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crypto-mac-0.8.0/src/errors.rs
+
+/Users/idealmac/amp/target/debug/deps/libcrypto_mac-9be6f8c1d6a60e7e.rmeta: /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crypto-mac-0.8.0/src/lib.rs /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crypto-mac-0.8.0/src/errors.rs
+
+/var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crypto-mac-0.8.0/src/lib.rs:
+/var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crypto-mac-0.8.0/src/errors.rs:

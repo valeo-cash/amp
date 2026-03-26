@@ -1,0 +1,342 @@
+Streaming transaction logs mentioning AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx. Confirmed commitment
+Transaction executed in slot 10:
+  Signature: 2H9zb5fK8vmX8Jyh12ojrzrcJvNZk8oK4QCNVVQH2i9hmoxtSe9YdKd4se5BTZ1Jn1QxEUJYk9AkLodxvUEX6R3n
+  Status: Ok
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: OpenChannel
+    Program 11111111111111111111111111111111 invoke [2]
+    Program 11111111111111111111111111111111 success
+    Program 11111111111111111111111111111111 invoke [2]
+    Program 11111111111111111111111111111111 success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: InitializeAccount3
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4214 of 180140 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: Transfer
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 172509 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program log: AMP: channel opened | funder=98rK19hgt7xxntF6zAEBe7T6SvELZWXZKJpKzdjRbc6W recipient=7zzqheCRizZgp8JJkzSKGxuuZCyyuE7B7wEJ6M98Xa1G deposit=1000000 nonce=0
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 55552 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx success
+Transaction executed in slot 10:
+  Signature: 472pNPeHG9v7GiyqbVTpeYSDe1nPbojdB6TyNNSf7bjC8ZuYbPUa6gn3esrbtq5zJEyXfnqmeKzcxLvygFXdCeN
+  Status: Error processing Instruction 0: custom program error: 0x177f
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: OpenChannel
+    Program 11111111111111111111111111111111 invoke [2]
+    Program 11111111111111111111111111111111 success
+    Program 11111111111111111111111111111111 invoke [2]
+    Program 11111111111111111111111111111111 success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: InitializeAccount3
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4214 of 178640 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program log: AnchorError thrown in programs/amp-channel/src/instructions/open_channel.rs:62. Error Code: ZeroAmount. Error Number: 6015. Error Message: Amount must be greater than zero.
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 28667 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx failed: custom program error: 0x177f
+Transaction executed in slot 10:
+  Signature: 5S4LZFWBmNDJijDyvwX4A3b6S6FAZTUndVTR6aWAQCM76WpMhsDpKH28TgzGLLytL6SViWShHHu1zA12q4pxpsYG
+  Status: Error processing Instruction 0: custom program error: 0x1775
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: OpenChannel
+    Program 11111111111111111111111111111111 invoke [2]
+    Program 11111111111111111111111111111111 success
+    Program 11111111111111111111111111111111 invoke [2]
+    Program 11111111111111111111111111111111 success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: InitializeAccount3
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4214 of 177140 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program log: AnchorError thrown in programs/amp-channel/src/instructions/open_channel.rs:64. Error Code: InvalidSettleInterval. Error Number: 6005. Error Message: Invalid settle interval.
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 30173 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx failed: custom program error: 0x1775
+Transaction executed in slot 10:
+  Signature: 2Ftj4p45wHLydiVsgiVjtBWLCYjeqJ3W5E5SofdJ9Fmn1EmFNte4UCWF4NWhRA1Th3VToMmBCov2eW43CbHEvA8K
+  Status: Ok
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: TopUp
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: Transfer
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 188491 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program log: AMP: top-up | amount=500000 new_balance=1500000
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 18477 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx success
+Transaction executed in slot 11:
+  Signature: 2Ftj4p45wHLydiVsgiVjtBWLCYjeqJ3W5E5SofdJ9Fmn1EmFNte4UCWF4NWhRA1Th3VToMmBCov2eW43CbHEvA8K
+  Status: Ok
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: TopUp
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: Transfer
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 188491 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program log: AMP: top-up | amount=500000 new_balance=1500000
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 18477 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx success
+Transaction executed in slot 11:
+  Signature: 58a9PLgFxqiek5YZCNzDnQzbbqdyXLF5hJKL7yDTn9zz2kgit4KXVJhKd5KBdAtapCsJymGcZdQ8cMKmXvre5UZh
+  Status: Error processing Instruction 0: custom program error: 0x1777
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: TopUp
+    Program log: AnchorError caused by account: channel_state. Error Code: Unauthorized. Error Number: 6007. Error Message: Unauthorized: signer is not funder, recipient, or stratum authority.
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 6485 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx failed: custom program error: 0x1777
+Transaction executed in slot 11:
+  Signature: 5xtTRBGzQG8SQjfg23N6STy4pyeiSrrC42gBFZafn9UGJdpkffMuS7PjaSGvCspJaBTiBRR7gJ3tuDFAwJU85PMq
+  Status: Error processing Instruction 0: custom program error: 0x1772
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: Settle
+    Program log: AnchorError thrown in programs/amp-channel/src/instructions/settle.rs:61. Error Code: SettleTooEarly. Error Number: 6002. Error Message: Settlement attempted before interval elapsed.
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 11517 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx failed: custom program error: 0x1772
+Transaction executed in slot 11:
+  Signature: 5W5hX9Guzq5HLJdecC49jAspjW6y61sQHEkAha3a8tXWLuiXNLh4d6f7zB7e4d32RtYgkoy6yZu77V6VsHgDroDF
+  Status: Error processing Instruction 0: custom program error: 0x1775
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: OpenChannel
+    Program 11111111111111111111111111111111 invoke [2]
+    Program 11111111111111111111111111111111 success
+    Program 11111111111111111111111111111111 invoke [2]
+    Program 11111111111111111111111111111111 success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: InitializeAccount3
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4214 of 183140 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program log: AnchorError thrown in programs/amp-channel/src/instructions/open_channel.rs:64. Error Code: InvalidSettleInterval. Error Number: 6005. Error Message: Invalid settle interval.
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 24173 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx failed: custom program error: 0x1775
+Transaction executed in slot 11:
+  Signature: 2uLXcUacqN4cA6JZpVmYUtZmfSzqEm8kATx5o8psccm961KwNCLnvHJQQzs3AJ5wfk7cwKqUWDgS6HabejK9z2Q7
+  Status: Error processing Instruction 0: custom program error: 0x1771
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: Settle
+    Program log: AnchorError thrown in programs/amp-channel/src/instructions/settle.rs:53. Error Code: InsufficientBalance. Error Number: 6001. Error Message: Channel balance is insufficient.
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 11321 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx failed: custom program error: 0x1771
+Transaction executed in slot 13:
+  Signature: 32TAKp4iLikjx8nCuGNSWd3tRewJg1bNfaThSRUCNGRRGyCRkVYQTGQiRtipkc36dtop9yZqTfeEY7ruQABn6YEV
+  Status: Ok
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: SetDelegate
+    Program log: AMP: delegate set | delegate=3JsL46bKmJpMixW4tF8eHFiKzThhF5xfXQibHsMKaFg8 limit=300000
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 15564 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx success
+Transaction executed in slot 14:
+  Signature: 3BiEVfbs4cexoYdVezSPH6miTsFFY8wZgMoi2eyS9rYPM4YEeTm6pr4E7nCHfcyPo9ndzwRvRudMSEPiceqVEiWn
+  Status: Ok
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: ChainChannel
+    Program 11111111111111111111111111111111 invoke [2]
+    Program 11111111111111111111111111111111 success
+    Program 11111111111111111111111111111111 invoke [2]
+    Program 11111111111111111111111111111111 success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: InitializeAccount3
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4214 of 179181 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: Transfer
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 170116 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program log: AMP: chain created | upstream=AvqojFaPE4B1RfvzR3ws64Np7A1WacXs8BJDxPi6TomM downstream=F6dbtunusL8DyPei3Guoft4txPG2jgtMkSEgbapsLE2y amount=300000
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 59631 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx success
+Transaction executed in slot 14:
+  Signature: 4FaFMB8b7thrsETPVZHcpkKL89ijkipv6xWjnPCCiB5oskkTLxX9CYsTBZtHiM6nRwApWXYQmsfKJccKUkuYUnHg
+  Status: Error processing Instruction 0: custom program error: 0x177d
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: ChainChannel
+    Program 11111111111111111111111111111111 invoke [2]
+    Program 11111111111111111111111111111111 success
+    Program 11111111111111111111111111111111 invoke [2]
+    Program 11111111111111111111111111111111 success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: InitializeAccount3
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4214 of 177681 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program log: AnchorError caused by account: upstream_channel. Error Code: NotUpstreamRecipient. Error Number: 6013. Error Message: Only the upstream recipient can create downstream channels.
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 31079 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx failed: custom program error: 0x177d
+Transaction executed in slot 15:
+  Signature: 59vFBCkYBJPL4VY7NsK9JoD7ffnBBWDkX3gS7smJDq4mYU8RNomKVrbbtT8TmWf1LMn7Vfifo6C93wHBjZqm5fZJ
+  Status: Ok
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: CloseChannel
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: Transfer
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 184876 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: CloseAccount
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 3015 of 178149 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program log: AMP: channel closed | final_settle=0 refund=300000
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 27579 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx success
+Transaction executed in slot 15:
+  Signature: 63UxEGA8QbcW7QDwE4dQiBeTpstL3g9dTLzCtE2VFcRksSvf4RKfXszYQ1GAuv9fyKu4dxjqYtWfk3eWLMsFBNT8
+  Status: Ok
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: CloseChannel
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: Transfer
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 186984 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: Transfer
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 180241 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: CloseAccount
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 3015 of 173514 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program log: AMP: channel closed | final_settle=100000 refund=1100000
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 30789 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx success
+Transaction executed in slot 16:
+  Signature: 63UxEGA8QbcW7QDwE4dQiBeTpstL3g9dTLzCtE2VFcRksSvf4RKfXszYQ1GAuv9fyKu4dxjqYtWfk3eWLMsFBNT8
+  Status: Ok
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: CloseChannel
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: Transfer
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 186984 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: Transfer
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 180241 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: CloseAccount
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 3015 of 173514 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program log: AMP: channel closed | final_settle=100000 refund=1100000
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 30789 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx success
+Transaction executed in slot 16:
+  Signature: 3SNJ3M3BfNt9Z552yHNWR4sGJ49MhQx1RitLvuC8DpJKbtGWo1bSS1XHHNnr8AyhnJnzT3QwFBTLKFPaNbcvWD3e
+  Status: Ok
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: OpenChannel
+    Program 11111111111111111111111111111111 invoke [2]
+    Program 11111111111111111111111111111111 success
+    Program 11111111111111111111111111111111 invoke [2]
+    Program 11111111111111111111111111111111 success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: InitializeAccount3
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4214 of 181640 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: Transfer
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 174009 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program log: AMP: channel opened | funder=98rK19hgt7xxntF6zAEBe7T6SvELZWXZKJpKzdjRbc6W recipient=7zzqheCRizZgp8JJkzSKGxuuZCyyuE7B7wEJ6M98Xa1G deposit=500000 nonce=42
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 54045 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx success
+Transaction executed in slot 17:
+  Signature: 3SNJ3M3BfNt9Z552yHNWR4sGJ49MhQx1RitLvuC8DpJKbtGWo1bSS1XHHNnr8AyhnJnzT3QwFBTLKFPaNbcvWD3e
+  Status: Ok
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: OpenChannel
+    Program 11111111111111111111111111111111 invoke [2]
+    Program 11111111111111111111111111111111 success
+    Program 11111111111111111111111111111111 invoke [2]
+    Program 11111111111111111111111111111111 success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: InitializeAccount3
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4214 of 181640 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: Transfer
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 174009 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program log: AMP: channel opened | funder=98rK19hgt7xxntF6zAEBe7T6SvELZWXZKJpKzdjRbc6W recipient=7zzqheCRizZgp8JJkzSKGxuuZCyyuE7B7wEJ6M98Xa1G deposit=500000 nonce=42
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 54045 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx success
+Transaction executed in slot 17:
+  Signature: 2VB6HceyJ8286HXQ72TzNnRfc7LHVpQ4LjSpHqt62FFExBUa9LBz4iUqwNmio44FbBjakbM21m2yuf6RzySvensn
+  Status: Ok
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: TopUp
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: Transfer
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 191491 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program log: AMP: top-up | amount=200000 new_balance=700000
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 15466 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx success
+Transaction executed in slot 18:
+  Signature: 2VB6HceyJ8286HXQ72TzNnRfc7LHVpQ4LjSpHqt62FFExBUa9LBz4iUqwNmio44FbBjakbM21m2yuf6RzySvensn
+  Status: Ok
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: TopUp
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: Transfer
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 191491 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program log: AMP: top-up | amount=200000 new_balance=700000
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 15466 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx success
+Transaction executed in slot 18:
+  Signature: 4zHUHxjZVHCskuR85bwmiUkK4vp31PLg293uwo3e6DVth769c6y92XbW3xT7KG35Psd1h2MpRwkZmAPvHVJqN6e8
+  Status: Ok
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: CloseChannel
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: Transfer
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 190007 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: Transfer
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 183264 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: CloseAccount
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 3015 of 176537 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program log: AMP: channel closed | final_settle=50000 refund=650000
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 27751 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx success
+Transaction executed in slot 19:
+  Signature: 4zHUHxjZVHCskuR85bwmiUkK4vp31PLg293uwo3e6DVth769c6y92XbW3xT7KG35Psd1h2MpRwkZmAPvHVJqN6e8
+  Status: Ok
+  Log Messages:
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx invoke [1]
+    Program log: Instruction: CloseChannel
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: Transfer
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 190007 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: Transfer
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 183264 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]
+    Program log: Instruction: CloseAccount
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 3015 of 176537 compute units
+    Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success
+    Program log: AMP: channel closed | final_settle=50000 refund=650000
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx consumed 27751 of 200000 compute units
+    Program AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx success

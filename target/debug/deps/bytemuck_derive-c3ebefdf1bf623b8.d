@@ -1,0 +1,6 @@
+/Users/idealmac/amp/target/debug/deps/bytemuck_derive-c3ebefdf1bf623b8.d: /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytemuck_derive-1.10.2/src/lib.rs /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytemuck_derive-1.10.2/src/traits.rs
+
+/Users/idealmac/amp/target/debug/deps/libbytemuck_derive-c3ebefdf1bf623b8.dylib: /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytemuck_derive-1.10.2/src/lib.rs /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytemuck_derive-1.10.2/src/traits.rs
+
+/var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytemuck_derive-1.10.2/src/lib.rs:
+/var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytemuck_derive-1.10.2/src/traits.rs:

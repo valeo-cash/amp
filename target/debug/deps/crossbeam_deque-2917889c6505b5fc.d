@@ -1,0 +1,8 @@
+/Users/idealmac/amp/target/debug/deps/crossbeam_deque-2917889c6505b5fc.d: /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crossbeam-deque-0.8.6/src/lib.rs /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crossbeam-deque-0.8.6/src/deque.rs
+
+/Users/idealmac/amp/target/debug/deps/libcrossbeam_deque-2917889c6505b5fc.rlib: /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crossbeam-deque-0.8.6/src/lib.rs /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crossbeam-deque-0.8.6/src/deque.rs
+
+/Users/idealmac/amp/target/debug/deps/libcrossbeam_deque-2917889c6505b5fc.rmeta: /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crossbeam-deque-0.8.6/src/lib.rs /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crossbeam-deque-0.8.6/src/deque.rs
+
+/var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crossbeam-deque-0.8.6/src/lib.rs:
+/var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crossbeam-deque-0.8.6/src/deque.rs:
