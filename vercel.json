@@ -1,4 +1,4 @@
 {
-  "buildCommand": "npx vocs build && find . -name 'index.html' -maxdepth 4 -not -path './node_modules/*' | head -10",
+  "buildCommand": "bash build.sh",
   "outputDirectory": "dist"
 }
