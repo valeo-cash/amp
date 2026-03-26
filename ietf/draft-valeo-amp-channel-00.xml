@@ -1,0 +1,1261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE rfc [
+  <!ENTITY nbsp    "&#160;">
+  <!ENTITY zwsp   "&#8203;">
+  <!ENTITY nbhy   "&#8209;">
+  <!ENTITY wj     "&#8288;">
+]>
+
+<rfc xmlns:xi="http://www.w3.org/2001/XInclude"
+     ipr="trust200902"
+     docName="draft-valeo-amp-channel-00"
+     category="std"
+     submissionType="independent"
+     consensus="false"
+     xml:lang="en"
+     version="3">
+
+  <front>
+    <title abbrev="AMP Channel Protocol">
+      Autonomous Machine Payments: Persistent Financial State Channels
+      for Machine-to-Machine Transactions
+    </title>
+
+    <seriesInfo name="Internet-Draft" value="draft-valeo-amp-channel-00"/>
+
+    <author fullname="[Author Name]" initials="[X.]" surname="[Surname]">
+      <organization>Valeo Protocol</organization>
+      <address>
+        <email>[email]</email>
+      </address>
+    </author>
+
+    <date year="2026" month="March" day="26"/>
+
+    <area>Applications and Real-Time</area>
+    <workgroup>Network Working Group</workgroup>
+
+    <keyword>payments</keyword>
+    <keyword>machine-to-machine</keyword>
+    <keyword>HTTP 402</keyword>
+    <keyword>payment channels</keyword>
+    <keyword>autonomous agents</keyword>
+    <keyword>metering</keyword>
+
+    <abstract>
+      <t>
+        This document defines the Autonomous Machine Payments (AMP) protocol,
+        a mechanism for persistent financial state channels between autonomous
+        agents and services. AMP replaces per-request payment models with
+        persistent channels that allow unlimited interactions after a single
+        channel-opening transaction, with periodic net settlement. The protocol
+        is designed for machine-to-machine payment flows where agents operate
+        autonomously with budgets, ongoing relationships, and multi-step
+        workflows. AMP defines the channel lifecycle (discovery, open, consume,
+        settle, close), metering modes, delegation semantics, and transport
+        bindings for HTTP, WebSocket, gRPC, MQTT, MCP (JSON-RPC), and raw TCP.
+      </t>
+    </abstract>
+  </front>
+
+  <middle>
+
+    <!-- ============================================================ -->
+    <!-- Section 1: Introduction                                      -->
+    <!-- ============================================================ -->
+
+    <section anchor="introduction" numbered="true" toc="include">
+      <name>Introduction</name>
+
+      <t>
+        HTTP 402 "Payment Required" was reserved in HTTP/1.1
+        <xref target="RFC9110"/> but has seen limited standardized use.
+        Recent protocols such as the Payment HTTP Authentication Scheme
+        <xref target="I-D.draft-httpauth-payment"/> have begun to define
+        semantics for 402-based payment flows between machines.
+      </t>
+
+      <t>
+        Existing payment protocols treat each API request as a discrete
+        payment event. This creates per-call latency (additional round-trips
+        for payment negotiation), per-call on-chain transaction costs, and
+        stateless interactions where each request is financially independent.
+        Autonomous agents do not operate this way: they maintain ongoing
+        relationships with services, execute against budgets, open streaming
+        connections, and delegate sub-tasks to other agents.
+      </t>
+
+      <t>
+        The Autonomous Machine Payments (AMP) protocol addresses this by
+        introducing persistent financial state channels. A funder opens a
+        channel once, depositing funds into a program-controlled escrow
+        account. Subsequent requests are served without per-request payment
+        negotiation. Usage is metered off-chain by the service and settled
+        periodically via net clearing. This reduces on-chain transactions
+        from N (one per request) to approximately 3 (open, settle, close)
+        regardless of request volume.
+      </t>
+
+      <section anchor="design-principles" numbered="true" toc="include">
+        <name>Design Principles</name>
+        <t>AMP is designed around four principles:</t>
+        <ol>
+          <li>
+            Zero runtime friction: after channel open, consumption adds
+            zero payment latency to the request path.
+          </li>
+          <li>
+            Transport agnostic: the protocol works on HTTP, WebSocket,
+            gRPC, MQTT, MCP (JSON-RPC), and raw TCP.
+          </li>
+          <li>
+            Ledger native: channel state is stored on-chain as a
+            program-derived account, composable with other on-chain
+            programs.
+          </li>
+          <li>
+            Credit-ready: the channel model is architecturally compatible
+            with credit and reputation extensions that allow channels to
+            operate with reduced or zero deposits.
+          </li>
+        </ol>
+      </section>
+
+      <section anchor="relationship" numbered="true" toc="include">
+        <name>Relationship to Other Specifications</name>
+        <t>
+          AMP uses HTTP 402 for initial pricing discovery, consistent with
+          <xref target="I-D.draft-httpauth-payment"/>. However, after
+          discovery, AMP's channel lifecycle diverges: instead of
+          per-request challenge-credential flows, AMP establishes a
+          persistent channel that serves unlimited requests without
+          additional payment negotiation per call.
+        </t>
+        <t>
+          AMP is complementary to payment-method-agnostic frameworks. It
+          defines a specific channel-based payment mechanism optimized for
+          high-frequency machine-to-machine interactions with net settlement.
+        </t>
+      </section>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Section 2: Requirements Language                             -->
+    <!-- ============================================================ -->
+
+    <section anchor="requirements" numbered="true" toc="include">
+      <name>Requirements Language</name>
+      <t>
+        The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+        "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY",
+        and "OPTIONAL" in this document are to be interpreted as described
+        in BCP 14 <xref target="RFC2119"/> <xref target="RFC8174"/> when,
+        and only when, they appear in all capitals, as shown here.
+      </t>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Section 3: Terminology                                       -->
+    <!-- ============================================================ -->
+
+    <section anchor="terminology" numbered="true" toc="include">
+      <name>Terminology</name>
+      <dl>
+        <dt>Channel</dt>
+        <dd>
+          A persistent financial state object between two parties (funder
+          and recipient), represented as an on-chain account. A channel
+          holds deposited tokens in a vault and tracks usage state.
+          Lifecycle: Open, Active, Settled (repeating), Closed.
+        </dd>
+
+        <dt>Funder</dt>
+        <dd>
+          The party that deposits funds into a channel. Typically an
+          autonomous agent or client application.
+        </dd>
+
+        <dt>Recipient</dt>
+        <dd>
+          The party that receives funds via settlement. Typically a
+          service provider operating an API.
+        </dd>
+
+        <dt>Metering</dt>
+        <dd>
+          Off-chain usage tracking performed by the recipient. The
+          recipient tracks how much the funder has consumed and produces
+          signed metering proofs that authorize on-chain settlement.
+        </dd>
+
+        <dt>Settlement</dt>
+        <dd>
+          The process of transferring owed funds from the channel vault
+          to the recipient. Settlement is always net: one on-chain
+          transaction covers all usage since the last settlement.
+        </dd>
+
+        <dt>Delegation</dt>
+        <dd>
+          Assignment of consumption rights from a funder to a third-party
+          public key (the delegate). The delegate can consume services
+          against the channel up to a specified limit.
+        </dd>
+
+        <dt>Channel Chaining</dt>
+        <dd>
+          The process by which a recipient of an upstream channel creates
+          a downstream channel funded from the upstream vault. This enables
+          agent supply chains where value flows through a chain of services.
+        </dd>
+
+        <dt>Metering Proof</dt>
+        <dd>
+          A signed attestation by the recipient of the total usage during
+          a settlement period. Contains the amount owed, call count,
+          period timestamps, sequence number range, and the recipient's
+          Ed25519 signature over a hash of these fields.
+        </dd>
+      </dl>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Section 4: Protocol Overview                                 -->
+    <!-- ============================================================ -->
+
+    <section anchor="protocol-overview" numbered="true" toc="include">
+      <name>Protocol Overview</name>
+
+      <t>
+        AMP defines a channel-based payment protocol with five phases:
+        discovery, open, consume, settle, and close. The following diagram
+        illustrates the message flow:
+      </t>
+
+      <figure anchor="fig-flow">
+        <name>AMP Protocol Flow</name>
+        <artwork type="ascii-art"><![CDATA[
+Client                                         Server
+  |                                                |
+  |  (1) GET /.well-known/amp.json                 |
+  |----------------------------------------------->|
+  |  (2) 200 OK { pricing manifest }               |
+  |<-----------------------------------------------|
+  |                                                |
+  |  (3) Open channel on ledger                    |
+  |      (single on-chain transaction)             |
+  |                                                |
+  |  (4) GET /resource                             |
+  |      AMP-Channel: <channel-id>                 |
+  |      AMP-Seq: 1                                |
+  |      AMP-Sig: <signature>                      |
+  |----------------------------------------------->|
+  |  (5) 200 OK { resource }                       |
+  |      AMP-Balance: <remaining>                  |
+  |<-----------------------------------------------|
+  |                                                |
+  |  ... repeat (4)-(5) unlimited times ...        |
+  |  ... zero on-chain transactions ...            |
+  |                                                |
+  |  (6) Server settles periodically               |
+  |      (single on-chain transaction,             |
+  |       nets all accumulated usage)              |
+  |                                                |
+  |  (7) Close channel                             |
+  |      (final settlement + refund remainder)     |
+  |                                                |
+]]></artwork>
+      </figure>
+
+      <t>
+        Steps (4) and (5) repeat for every API call. No on-chain
+        transactions occur during consumption. The server meters usage
+        off-chain and settles periodically (step 6) via a single
+        on-chain transaction that covers all usage since the last
+        settlement.
+      </t>
+
+      <t>
+        For 1,000 API calls, a per-request protocol requires 1,000
+        on-chain transactions. AMP requires approximately 3 (open,
+        settle, close), regardless of call volume.
+      </t>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Section 5: Discovery                                         -->
+    <!-- ============================================================ -->
+
+    <section anchor="discovery" numbered="true" toc="include">
+      <name>Discovery</name>
+
+      <t>
+        Before opening a channel, the client MUST discover the server's
+        AMP pricing. Three discovery mechanisms are defined.
+      </t>
+
+      <section anchor="well-known" numbered="true" toc="include">
+        <name>Well-Known Endpoint</name>
+        <t>
+          The server SHOULD expose pricing at the well-known URI
+          <xref target="RFC8615"/>
+          "/.well-known/amp.json". The response is a JSON
+          <xref target="RFC8259"/> object with the following fields:
+        </t>
+
+        <table anchor="table-manifest">
+          <name>Pricing Manifest Fields</name>
+          <thead>
+            <tr><th>Field</th><th>Required</th><th>Type</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>amp_version</td><td>REQUIRED</td><td>string</td><td>Protocol version (currently "1.0")</td></tr>
+            <tr><td>recipient</td><td>REQUIRED</td><td>string</td><td>Server's public key (base58-encoded)</td></tr>
+            <tr><td>program_id</td><td>REQUIRED</td><td>string</td><td>AMP program identifier (base58-encoded)</td></tr>
+            <tr><td>network</td><td>REQUIRED</td><td>string</td><td>Ledger network identifier</td></tr>
+            <tr><td>pricing</td><td>REQUIRED</td><td>object</td><td>Pricing configuration (see below)</td></tr>
+          </tbody>
+        </table>
+
+        <t>
+          The "pricing" object MUST contain a "default" field with the
+          following sub-fields:
+        </t>
+
+        <table anchor="table-pricing">
+          <name>Pricing Configuration Fields</name>
+          <thead>
+            <tr><th>Field</th><th>Required</th><th>Type</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>mode</td><td>REQUIRED</td><td>string</td><td>Metering mode (see <xref target="metering"/>)</td></tr>
+            <tr><td>rate</td><td>REQUIRED</td><td>string</td><td>Cost per unit in token smallest unit</td></tr>
+            <tr><td>token</td><td>REQUIRED</td><td>string</td><td>Token mint address (base58-encoded)</td></tr>
+            <tr><td>min_deposit</td><td>REQUIRED</td><td>string</td><td>Minimum channel deposit</td></tr>
+            <tr><td>settle_interval</td><td>REQUIRED</td><td>integer</td><td>Settlement interval in seconds</td></tr>
+          </tbody>
+        </table>
+
+        <t>
+          The "pricing" object MAY contain a "routes" field: a JSON
+          object where keys are route path prefixes and values are
+          partial pricing configurations that override the default.
+        </t>
+      </section>
+
+      <section anchor="discovery-402" numbered="true" toc="include">
+        <name>HTTP 402 Response Headers</name>
+        <t>
+          On any request to an AMP-enabled endpoint without valid channel
+          credentials, the server MUST respond with HTTP 402 Payment
+          Required <xref target="RFC9110"/> and include the following
+          response header fields:
+        </t>
+
+        <table anchor="table-402-headers">
+          <name>AMP 402 Response Header Fields</name>
+          <thead>
+            <tr><th>Header Field</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>AMP-Version</td><td>Protocol version string</td></tr>
+            <tr><td>AMP-Pricing</td><td>JSON-encoded pricing configuration</td></tr>
+            <tr><td>AMP-Recipient</td><td>Server's public key (base58)</td></tr>
+            <tr><td>AMP-Program</td><td>AMP program identifier (base58)</td></tr>
+            <tr><td>AMP-Network</td><td>Ledger network identifier</td></tr>
+          </tbody>
+        </table>
+
+        <t>
+          The response body SHOULD contain a JSON error object with
+          "error", "message", and "amp_version" fields.
+        </t>
+      </section>
+
+      <section anchor="discovery-inband" numbered="true" toc="include">
+        <name>In-Band Signaling</name>
+        <t>
+          For non-HTTP transports (WebSocket, gRPC, MQTT, raw TCP), the
+          server MUST send AMP pricing as the first message or frame
+          after connection establishment, using the same JSON schema
+          as the well-known endpoint.
+        </t>
+      </section>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Section 6: Channel Lifecycle                                 -->
+    <!-- ============================================================ -->
+
+    <section anchor="lifecycle" numbered="true" toc="include">
+      <name>Channel Lifecycle</name>
+
+      <section anchor="lifecycle-open" numbered="true" toc="include">
+        <name>Open</name>
+        <t>
+          The client creates a channel by submitting an "open_channel"
+          instruction to the on-chain AMP program.
+        </t>
+        <ol>
+          <li>
+            The client derives the channel account address using
+            deterministic address derivation with seeds:
+            ["amp-channel", funder_pubkey, recipient_pubkey, nonce]
+            where nonce is encoded as a little-endian unsigned 64-bit
+            integer (8 bytes). The client SHOULD use nonce 0 for the
+            first channel with a given recipient.
+          </li>
+          <li>
+            The client submits the open instruction with: recipient,
+            token mint, deposit amount, rate limit, settlement interval,
+            and nonce.
+          </li>
+          <li>
+            On confirmation, funds transfer from the client's token
+            account to a program-controlled vault account.
+          </li>
+          <li>
+            The client sends the channel address to the server via the
+            appropriate transport binding (e.g., AMP-Channel header for
+            HTTP).
+          </li>
+        </ol>
+        <t>
+          The server MUST verify the channel on-chain before accepting
+          requests: the account exists, is owned by the AMP program,
+          the recipient field matches the server's public key, the
+          status is Active (0), the balance is greater than zero, and
+          the token mint is accepted.
+        </t>
+      </section>
+
+      <section anchor="lifecycle-consume" numbered="true" toc="include">
+        <name>Consume</name>
+        <t>
+          After channel open, the client includes channel credentials
+          with every request. For HTTP, three header fields are used:
+        </t>
+
+        <table anchor="table-consume-headers">
+          <name>AMP Request Credential Header Fields</name>
+          <thead>
+            <tr><th>Header Field</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>AMP-Channel</td><td>Channel account address (base58-encoded)</td></tr>
+            <tr><td>AMP-Seq</td><td>Monotonically increasing sequence number (integer)</td></tr>
+            <tr><td>AMP-Sig</td><td>Ed25519 signature of the sequence number (base58-encoded)</td></tr>
+          </tbody>
+        </table>
+
+        <t>
+          The AMP-Sig value is an Ed25519 signature computed over the
+          sequence number encoded as a little-endian unsigned 64-bit
+          integer (8 bytes), using the funder's keypair (or the
+          delegate's keypair if delegation is active).
+        </t>
+
+        <t>The server MUST perform all of the following verification steps:</t>
+        <ol>
+          <li>
+            Verify the channel account exists on-chain and has status
+            Active. The server MAY cache channel state with a TTL.
+          </li>
+          <li>
+            Verify the signature matches the channel's funder public
+            key or delegate public key.
+          </li>
+          <li>
+            Verify the sequence number is strictly greater than the
+            last seen sequence number for this channel.
+          </li>
+          <li>Verify the channel balance is greater than zero.</li>
+          <li>Serve the request.</li>
+          <li>Increment the local metering counter for this channel.</li>
+        </ol>
+
+        <t>
+          Zero on-chain transactions occur during consumption. All
+          verification is performed off-chain using cached channel state
+          and Ed25519 signature verification.
+        </t>
+
+        <t>
+          The server SHOULD include an AMP-Balance response header field
+          containing the remaining channel balance as an integer in the
+          token's smallest unit.
+        </t>
+      </section>
+
+      <section anchor="lifecycle-settle" numbered="true" toc="include">
+        <name>Settle</name>
+        <t>
+          Settlement is triggered when any of the following conditions
+          are met:
+        </t>
+        <ul>
+          <li>
+            The settle_interval seconds have elapsed since the last
+            settlement timestamp.
+          </li>
+          <li>Accumulated usage exceeds a server-defined threshold.</li>
+          <li>Either party explicitly requests settlement.</li>
+          <li>The channel is being closed.</li>
+        </ul>
+
+        <t>The settlement process is:</t>
+        <ol>
+          <li>
+            The server constructs a Metering Proof (see
+            <xref target="metering-proof"/>).
+          </li>
+          <li>
+            The server submits the "settle" instruction to the AMP
+            program with the settlement amount.
+          </li>
+          <li>
+            The program verifies: the amount does not exceed the
+            balance, the settle_interval has elapsed, and the settler
+            is either the recipient or the authorized netting authority
+            (if configured).
+          </li>
+          <li>
+            On success, the program transfers the amount from the vault
+            to the recipient's token account and updates the channel
+            state: balance decreases, total consumed increases, and
+            the last settlement timestamp is set to the current time.
+          </li>
+        </ol>
+      </section>
+
+      <section anchor="lifecycle-topup" numbered="true" toc="include">
+        <name>Top-Up</name>
+        <t>
+          The funder MAY add funds to an active channel at any time by
+          submitting the "top_up" instruction with the desired amount.
+          The channel balance and total deposited values increase
+          accordingly. Top-up does not affect metering, settlement
+          timing, or sequence numbers.
+        </t>
+      </section>
+
+      <section anchor="lifecycle-close" numbered="true" toc="include">
+        <name>Close</name>
+        <t>
+          Either party MAY close a channel by submitting the
+          "close_channel" instruction.
+        </t>
+        <ol>
+          <li>
+            An optional final settlement amount is transferred to the
+            recipient.
+          </li>
+          <li>
+            The remaining balance is returned to the funder's token
+            account.
+          </li>
+          <li>
+            The channel and vault accounts are closed, and rent-exempt
+            reserves are returned to the funder.
+          </li>
+        </ol>
+        <t>
+          A channel with active downstream channels (from channel
+          chaining) MUST NOT be closed until all downstream channels
+          are closed first.
+        </t>
+        <t>
+          After closure, the server MUST reject any subsequent requests
+          referencing this channel with error code AMP_CLOSED.
+        </t>
+      </section>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Section 7: Metering                                          -->
+    <!-- ============================================================ -->
+
+    <section anchor="metering" numbered="true" toc="include">
+      <name>Metering</name>
+
+      <t>
+        Metering is off-chain usage tracking performed by the server.
+        All metering happens off-chain; no on-chain transaction occurs
+        during consumption. The following metering modes are defined:
+      </t>
+
+      <table anchor="table-metering-modes">
+        <name>AMP Metering Modes</name>
+        <thead>
+          <tr><th>Mode</th><th>Unit</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>per-call</td><td>invocation</td><td>Fixed cost per API call</td></tr>
+          <tr><td>per-second</td><td>second</td><td>Cost per second of connection</td></tr>
+          <tr><td>per-byte</td><td>byte</td><td>Cost per byte transferred</td></tr>
+          <tr><td>per-compute</td><td>compute unit</td><td>Cost per compute unit consumed</td></tr>
+          <tr><td>custom</td><td>server-defined</td><td>Server publishes a custom metering function</td></tr>
+        </tbody>
+      </table>
+
+      <section anchor="metering-proof" numbered="true" toc="include">
+        <name>Metering Proof Signature Scheme</name>
+        <t>
+          The server signs the following data to produce a metering
+          proof:
+        </t>
+        <t>
+          The signed payload is the concatenation of 7 fields, totaling
+          80 bytes:
+        </t>
+        <ul>
+          <li>channel_id: 32 bytes (raw public key of the channel account)</li>
+          <li>amount: 8 bytes (little-endian unsigned 64-bit integer)</li>
+          <li>call_count: 8 bytes (little-endian unsigned 64-bit integer)</li>
+          <li>period_start: 8 bytes (little-endian signed 64-bit integer, Unix timestamp)</li>
+          <li>period_end: 8 bytes (little-endian signed 64-bit integer, Unix timestamp)</li>
+          <li>seq_start: 8 bytes (little-endian unsigned 64-bit integer)</li>
+          <li>seq_end: 8 bytes (little-endian unsigned 64-bit integer)</li>
+        </ul>
+        <t>
+          The hash is SHA-256 of the 80-byte payload, producing a
+          32-byte digest. The signature is Ed25519 over the 32-byte
+          digest using the recipient's keypair.
+        </t>
+      </section>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Section 8: Channel State                                     -->
+    <!-- ============================================================ -->
+
+    <section anchor="channel-state" numbered="true" toc="include">
+      <name>Channel State</name>
+
+      <t>
+        The channel state is an on-chain account derived via
+        deterministic address derivation from the seeds:
+        ["amp-channel", funder_pubkey, recipient_pubkey, nonce].
+        The nonce is encoded as a little-endian unsigned 64-bit integer.
+      </t>
+
+      <t>
+        The vault is a separate token account controlled by the channel
+        account, derived from: ["amp-vault", channel_account_address].
+      </t>
+
+      <t>
+        The channel state account contains the following fields (329
+        bytes of data after the 8-byte account discriminator):
+      </t>
+
+      <table anchor="table-channel-state">
+        <name>Channel State Account Fields</name>
+        <thead>
+          <tr><th>Field</th><th>Type</th><th>Size</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>bump</td><td>u8</td><td>1</td><td>Address derivation bump</td></tr>
+          <tr><td>funder</td><td>pubkey</td><td>32</td><td>Channel funder</td></tr>
+          <tr><td>recipient</td><td>pubkey</td><td>32</td><td>Channel recipient</td></tr>
+          <tr><td>mint</td><td>pubkey</td><td>32</td><td>Token mint</td></tr>
+          <tr><td>vault</td><td>pubkey</td><td>32</td><td>Vault token account</td></tr>
+          <tr><td>balance</td><td>u64</td><td>8</td><td>Available balance</td></tr>
+          <tr><td>total_deposited</td><td>u64</td><td>8</td><td>Lifetime deposits</td></tr>
+          <tr><td>total_consumed</td><td>u64</td><td>8</td><td>Lifetime settled amount</td></tr>
+          <tr><td>rate_limit</td><td>u64</td><td>8</td><td>Max tokens per settle_interval</td></tr>
+          <tr><td>settle_interval</td><td>i64</td><td>8</td><td>Seconds between settlements</td></tr>
+          <tr><td>last_settle_ts</td><td>i64</td><td>8</td><td>Last settlement timestamp</td></tr>
+          <tr><td>nonce</td><td>u64</td><td>8</td><td>Channel nonce</td></tr>
+          <tr><td>status</td><td>u8</td><td>1</td><td>0=Active, 1=Closed</td></tr>
+          <tr><td>created_at</td><td>i64</td><td>8</td><td>Creation timestamp</td></tr>
+          <tr><td>delegate</td><td>option(pubkey)</td><td>33</td><td>Optional delegate</td></tr>
+          <tr><td>delegate_limit</td><td>u64</td><td>8</td><td>Delegate consumption limit</td></tr>
+          <tr><td>delegate_consumed</td><td>u64</td><td>8</td><td>Delegate consumption so far</td></tr>
+          <tr><td>netting_enabled</td><td>bool</td><td>1</td><td>Multilateral netting opt-in</td></tr>
+          <tr><td>netting_cycle</td><td>i64</td><td>8</td><td>Netting cycle interval</td></tr>
+          <tr><td>netting_authority</td><td>option(pubkey)</td><td>33</td><td>Netting engine pubkey</td></tr>
+          <tr><td>parent_channel</td><td>option(pubkey)</td><td>33</td><td>Upstream channel (chaining)</td></tr>
+          <tr><td>child_channels</td><td>u8</td><td>1</td><td>Active downstream channels</td></tr>
+          <tr><td>max_chain_depth</td><td>u8</td><td>1</td><td>Max chain depth (default 3)</td></tr>
+          <tr><td>chain_depth</td><td>u8</td><td>1</td><td>Current depth (0=root)</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Section 9: Delegation                                        -->
+    <!-- ============================================================ -->
+
+    <section anchor="delegation" numbered="true" toc="include">
+      <name>Delegation</name>
+
+      <t>
+        A funder MAY assign a delegate public key to their channel. The
+        delegate can consume services against the channel up to a
+        specified limit.
+      </t>
+
+      <t>
+        Only the funder MAY set or change the delegate. The delegate
+        limit MUST NOT exceed the current channel balance. Setting a
+        new delegate resets the delegate_consumed counter to zero.
+      </t>
+
+      <t>
+        During consumption, the server MUST accept signatures from
+        either the funder's or the delegate's keypair. When the signer
+        is the delegate, the server MUST track delegate consumption
+        separately and reject requests that would exceed the delegate
+        limit.
+      </t>
+
+      <t>
+        Delegation enables agent-to-agent budget forwarding: Agent A
+        opens a channel, delegates a portion to Agent B, and Agent B
+        consumes services against Agent A's channel without requiring
+        its own capital.
+      </t>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Section 10: Transport Bindings                               -->
+    <!-- ============================================================ -->
+
+    <section anchor="transports" numbered="true" toc="include">
+      <name>Transport Bindings</name>
+
+      <t>
+        AMP is transport agnostic. This section defines how AMP
+        metadata is carried on each supported transport.
+      </t>
+
+      <section anchor="transport-http" numbered="true" toc="include">
+        <name>HTTP</name>
+        <t>
+          Discovery uses the well-known endpoint
+          (<xref target="well-known"/>) or 402 response headers
+          (<xref target="discovery-402"/>). Request credentials are
+          carried as HTTP header fields: AMP-Channel, AMP-Seq,
+          AMP-Sig. The server responds with AMP-Balance.
+        </t>
+      </section>
+
+      <section anchor="transport-websocket" numbered="true" toc="include">
+        <name>WebSocket</name>
+        <t>
+          Discovery: the server sends pricing as the first text frame
+          after the WebSocket handshake, using the same JSON schema as
+          the well-known endpoint.
+        </t>
+        <t>
+          Channel binding: the client sends the first text frame as a
+          JSON object with "amp_channel", "amp_seq", and "amp_sig"
+          fields. The server acknowledges with "amp_status" and
+          "amp_balance".
+        </t>
+        <t>
+          Subsequent messages use one of two formats: text mode (JSON
+          wrapper with "amp_seq", "amp_sig", and "payload" fields) or
+          binary mode (2-byte little-endian u16 sequence, 64-byte raw
+          Ed25519 signature, followed by the application payload).
+        </t>
+      </section>
+
+      <section anchor="transport-grpc" numbered="true" toc="include">
+        <name>gRPC</name>
+        <t>
+          AMP credentials are carried as gRPC metadata keys:
+          "amp-channel", "amp-seq", "amp-sig". For streaming RPCs,
+          credentials are sent in the initial request metadata; the
+          server meters each response message.
+        </t>
+      </section>
+
+      <section anchor="transport-mqtt" numbered="true" toc="include">
+        <name>MQTT 5.0</name>
+        <t>
+          Discovery: the server publishes pricing to topic
+          "$amp/pricing". Channel binding: the client includes AMP
+          credentials as MQTT 5.0 CONNECT packet User Properties.
+          Per-message metering: "amp-seq" and "amp-sig" as User
+          Properties on each PUBLISH packet.
+        </t>
+      </section>
+
+      <section anchor="transport-mcp" numbered="true" toc="include">
+        <name>MCP (JSON-RPC 2.0)</name>
+        <t>
+          An AMP-enabled MCP server MUST advertise pricing via a
+          dedicated "amp/pricing" JSON-RPC method. The response
+          includes per-tool pricing in a "tools" object within the
+          pricing manifest.
+        </t>
+        <t>
+          When calling a paid tool, the client MUST include AMP
+          credentials in the "_amp" field of the JSON-RPC "params"
+          object, containing "channel", "seq", and "sig" fields. The
+          "_amp" prefix is a reserved namespace; servers that do not
+          support AMP MUST ignore fields prefixed with "_".
+        </t>
+        <t>
+          If credentials are missing, the server responds with
+          JSON-RPC error code -32602 (Invalid Params), with the
+          message set to the appropriate AMP error code and the "data"
+          field containing pricing information.
+        </t>
+      </section>
+
+      <section anchor="transport-tcp" numbered="true" toc="include">
+        <name>Raw TCP</name>
+        <t>
+          Discovery: the server sends pricing as the first frame.
+          Frame format: 2-byte little-endian u16 envelope length,
+          followed by a CBOR-encoded object with short keys ("c" for
+          channel bytes, "s" for sequence number, "g" for signature
+          bytes), followed by the application payload.
+        </t>
+      </section>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Section 11: Error Codes                                      -->
+    <!-- ============================================================ -->
+
+    <section anchor="error-codes" numbered="true" toc="include">
+      <name>Error Codes</name>
+
+      <t>
+        The following error codes are defined by AMP. Servers MUST use
+        these codes in error responses across all transports.
+      </t>
+
+      <table anchor="table-errors">
+        <name>AMP Error Codes</name>
+        <thead>
+          <tr><th>Code</th><th>HTTP Status</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>AMP_NO_CHANNEL</td><td>402</td><td>No valid channel for this request</td></tr>
+          <tr><td>AMP_UNDERFUNDED</td><td>402</td><td>Channel balance below minimum</td></tr>
+          <tr><td>AMP_CLOSED</td><td>410</td><td>Channel has been closed</td></tr>
+          <tr><td>AMP_RATE_EXCEEDED</td><td>429</td><td>Usage exceeds channel rate limit</td></tr>
+          <tr><td>AMP_INVALID_PROOF</td><td>400</td><td>Metering proof signature invalid</td></tr>
+          <tr><td>AMP_SETTLE_EARLY</td><td>425</td><td>Settlement before interval elapsed</td></tr>
+          <tr><td>AMP_DEPOSIT_LOW</td><td>400</td><td>Initial deposit below minimum</td></tr>
+          <tr><td>AMP_INVALID_SEQ</td><td>400</td><td>Sequence number not increasing</td></tr>
+          <tr><td>AMP_INVALID_SIG</td><td>401</td><td>Signature verification failed</td></tr>
+        </tbody>
+      </table>
+
+      <t>
+        Error responses for HTTP SHOULD use the following JSON format:
+      </t>
+      <artwork type="json"><![CDATA[
+{
+  "error": "<AMP_ERROR_CODE>",
+  "message": "<human-readable description>",
+  "channel": "<channel-id>",
+  "balance": <integer>
+}
+]]></artwork>
+      <t>
+        For non-HTTP transports, the same JSON schema is used as the
+        error message payload.
+      </t>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Section 12: Security Considerations                          -->
+    <!-- ============================================================ -->
+
+    <section anchor="security" numbered="true" toc="include">
+      <name>Security Considerations</name>
+
+      <section anchor="security-transport" numbered="true" toc="include">
+        <name>Transport Security</name>
+        <t>
+          All AMP communications SHOULD use TLS 1.3
+          <xref target="RFC8446"/> or later. Channel credentials
+          (AMP-Sig) authenticate individual requests but do not
+          encrypt them. TLS provides confidentiality and integrity
+          for the transport layer.
+        </t>
+      </section>
+
+      <section anchor="security-replay" numbered="true" toc="include">
+        <name>Replay Prevention</name>
+        <t>
+          The client MUST include a monotonically increasing sequence
+          number (AMP-Seq) with every request. The server MUST reject
+          any request where the sequence number is less than or equal
+          to the last seen sequence number for the given channel, and
+          MUST respond with AMP_INVALID_SEQ.
+        </t>
+        <t>
+          The server SHOULD persist the last seen sequence number to
+          survive process restarts.
+        </t>
+      </section>
+
+      <section anchor="security-custody" numbered="true" toc="include">
+        <name>Fund Custody</name>
+        <t>
+          Channel funds are held in a program-controlled vault account.
+          Neither the funder nor the recipient can directly access the
+          vault. Funds can only move via the settle instruction (to the
+          recipient, requiring a valid metering proof) or the close
+          instruction (remainder to funder, settled amount to
+          recipient).
+        </t>
+      </section>
+
+      <section anchor="security-disputes" numbered="true" toc="include">
+        <name>Dispute Model</name>
+        <t>
+          AMP uses a simple dispute model based on unilateral channel
+          closure. If the server overcharges, the client can close the
+          channel immediately. The client loses at most one unsettled
+          period's worth of consumption. Shorter settle_interval values
+          reduce the maximum loss in a dispute.
+        </t>
+        <t>
+          AMP does not implement on-chain dispute resolution. The trust
+          assumption is that the server and client have aligned economic
+          incentives and that the maximum loss per dispute is bounded
+          and known in advance.
+        </t>
+      </section>
+
+      <section anchor="security-rate" numbered="true" toc="include">
+        <name>Rate Limiting</name>
+        <t>
+          The rate_limit field constrains the maximum tokens that can
+          be settled per settle_interval. This is enforced both on-chain
+          (by the settle instruction) and off-chain (by the server
+          middleware rejecting requests that would exceed the limit
+          before the next settlement).
+        </t>
+      </section>
+
+      <section anchor="security-sybil" numbered="true" toc="include">
+        <name>Sybil Resistance</name>
+        <t>
+          Opening a channel requires an on-chain transaction (paying
+          transaction fees), a token deposit (enforced by the server's
+          minimum deposit), and rent-exempt balance for the channel and
+          vault accounts. These costs make sybil channel attacks
+          economically impractical.
+        </t>
+      </section>
+
+      <section anchor="security-privacy" numbered="true" toc="include">
+        <name>Privacy Considerations</name>
+        <t>
+          Channel state is stored on-chain and is publicly readable.
+          The funder's public key, recipient's public key, balance, and
+          settlement history are visible to any observer. Parties
+          requiring privacy should consider this when choosing deposit
+          amounts and settlement intervals.
+        </t>
+      </section>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Section 13: IANA Considerations                              -->
+    <!-- ============================================================ -->
+
+    <section anchor="iana" numbered="true" toc="include">
+      <name>IANA Considerations</name>
+
+      <section anchor="iana-headers" numbered="true" toc="include">
+        <name>HTTP Header Field Registrations</name>
+        <t>
+          This specification registers the following HTTP header fields
+          in the "Hypertext Transfer Protocol (HTTP) Field Name
+          Registry" established by <xref target="RFC9110"/>:
+        </t>
+
+        <table anchor="table-iana-headers">
+          <name>HTTP Header Field Registrations</name>
+          <thead>
+            <tr><th>Field Name</th><th>Status</th><th>Section</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>AMP-Channel</td><td>permanent</td><td><xref target="lifecycle-consume"/></td></tr>
+            <tr><td>AMP-Seq</td><td>permanent</td><td><xref target="lifecycle-consume"/></td></tr>
+            <tr><td>AMP-Sig</td><td>permanent</td><td><xref target="lifecycle-consume"/></td></tr>
+            <tr><td>AMP-Balance</td><td>permanent</td><td><xref target="lifecycle-consume"/></td></tr>
+            <tr><td>AMP-Version</td><td>permanent</td><td><xref target="discovery-402"/></td></tr>
+            <tr><td>AMP-Pricing</td><td>permanent</td><td><xref target="discovery-402"/></td></tr>
+            <tr><td>AMP-Recipient</td><td>permanent</td><td><xref target="discovery-402"/></td></tr>
+            <tr><td>AMP-Program</td><td>permanent</td><td><xref target="discovery-402"/></td></tr>
+            <tr><td>AMP-Network</td><td>permanent</td><td><xref target="discovery-402"/></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section anchor="iana-well-known" numbered="true" toc="include">
+        <name>Well-Known URI Registration</name>
+        <t>
+          This specification registers the following well-known URI
+          <xref target="RFC8615"/>:
+        </t>
+        <dl>
+          <dt>URI Suffix:</dt><dd>amp.json</dd>
+          <dt>Change Controller:</dt><dd>IETF</dd>
+          <dt>Reference:</dt><dd><xref target="well-known"/> of this document</dd>
+        </dl>
+      </section>
+
+      <section anchor="iana-metering" numbered="true" toc="include">
+        <name>AMP Metering Modes Registry</name>
+        <t>
+          This specification establishes the "AMP Metering Modes"
+          registry. Initial values are defined in
+          <xref target="metering"/>:
+          "per-call", "per-second", "per-byte", "per-compute", "custom".
+        </t>
+        <t>
+          New entries require Specification Required
+          <xref target="RFC8126"/>.
+        </t>
+      </section>
+
+      <section anchor="iana-errors" numbered="true" toc="include">
+        <name>AMP Error Codes Registry</name>
+        <t>
+          This specification establishes the "AMP Error Codes" registry.
+          Initial values are defined in <xref target="error-codes"/>.
+        </t>
+        <t>
+          New entries require Specification Required
+          <xref target="RFC8126"/>.
+        </t>
+      </section>
+    </section>
+
+  </middle>
+
+  <back>
+
+    <!-- ============================================================ -->
+    <!-- References                                                    -->
+    <!-- ============================================================ -->
+
+    <references>
+      <name>References</name>
+
+      <references>
+        <name>Normative References</name>
+
+        <reference anchor="RFC2119" target="https://www.rfc-editor.org/info/rfc2119">
+          <front>
+            <title>Key words for use in RFCs to Indicate Requirement Levels</title>
+            <author initials="S." surname="Bradner" fullname="S. Bradner"/>
+            <date year="1997" month="March"/>
+          </front>
+          <seriesInfo name="BCP" value="14"/>
+          <seriesInfo name="RFC" value="2119"/>
+          <seriesInfo name="DOI" value="10.17487/RFC2119"/>
+        </reference>
+
+        <reference anchor="RFC8174" target="https://www.rfc-editor.org/info/rfc8174">
+          <front>
+            <title>Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words</title>
+            <author initials="B." surname="Leiba" fullname="B. Leiba"/>
+            <date year="2017" month="May"/>
+          </front>
+          <seriesInfo name="BCP" value="14"/>
+          <seriesInfo name="RFC" value="8174"/>
+          <seriesInfo name="DOI" value="10.17487/RFC8174"/>
+        </reference>
+
+        <reference anchor="RFC9110" target="https://www.rfc-editor.org/info/rfc9110">
+          <front>
+            <title>HTTP Semantics</title>
+            <author initials="R." surname="Fielding" fullname="R. Fielding"/>
+            <author initials="M." surname="Nottingham" fullname="M. Nottingham"/>
+            <author initials="J." surname="Reschke" fullname="J. Reschke"/>
+            <date year="2022" month="June"/>
+          </front>
+          <seriesInfo name="STD" value="97"/>
+          <seriesInfo name="RFC" value="9110"/>
+          <seriesInfo name="DOI" value="10.17487/RFC9110"/>
+        </reference>
+
+        <reference anchor="RFC8259" target="https://www.rfc-editor.org/info/rfc8259">
+          <front>
+            <title>The JavaScript Object Notation (JSON) Data Interchange Format</title>
+            <author initials="T." surname="Bray" fullname="T. Bray"/>
+            <date year="2017" month="December"/>
+          </front>
+          <seriesInfo name="STD" value="90"/>
+          <seriesInfo name="RFC" value="8259"/>
+          <seriesInfo name="DOI" value="10.17487/RFC8259"/>
+        </reference>
+
+        <reference anchor="RFC8615" target="https://www.rfc-editor.org/info/rfc8615">
+          <front>
+            <title>Well-Known Uniform Resource Identifiers (URIs)</title>
+            <author initials="M." surname="Nottingham" fullname="M. Nottingham"/>
+            <date year="2019" month="May"/>
+          </front>
+          <seriesInfo name="RFC" value="8615"/>
+          <seriesInfo name="DOI" value="10.17487/RFC8615"/>
+        </reference>
+
+        <reference anchor="RFC8126" target="https://www.rfc-editor.org/info/rfc8126">
+          <front>
+            <title>Guidelines for Writing an IANA Considerations Section in RFCs</title>
+            <author initials="M." surname="Cotton" fullname="M. Cotton"/>
+            <author initials="B." surname="Leiba" fullname="B. Leiba"/>
+            <author initials="T." surname="Narten" fullname="T. Narten"/>
+            <date year="2017" month="June"/>
+          </front>
+          <seriesInfo name="BCP" value="26"/>
+          <seriesInfo name="RFC" value="8126"/>
+          <seriesInfo name="DOI" value="10.17487/RFC8126"/>
+        </reference>
+
+      </references>
+
+      <references>
+        <name>Informative References</name>
+
+        <reference anchor="I-D.draft-httpauth-payment">
+          <front>
+            <title>Payment HTTP Authentication Scheme</title>
+            <author initials="D." surname="Tempo" fullname="D. Tempo"/>
+            <date year="2025"/>
+          </front>
+          <seriesInfo name="Internet-Draft" value="draft-httpauth-payment-00"/>
+        </reference>
+
+        <reference anchor="RFC8446" target="https://www.rfc-editor.org/info/rfc8446">
+          <front>
+            <title>The Transport Layer Security (TLS) Protocol Version 1.3</title>
+            <author initials="E." surname="Rescorla" fullname="E. Rescorla"/>
+            <date year="2018" month="August"/>
+          </front>
+          <seriesInfo name="RFC" value="8446"/>
+          <seriesInfo name="DOI" value="10.17487/RFC8446"/>
+        </reference>
+
+        <reference anchor="RFC9457" target="https://www.rfc-editor.org/info/rfc9457">
+          <front>
+            <title>Problem Details for HTTP APIs</title>
+            <author initials="M." surname="Nottingham" fullname="M. Nottingham"/>
+            <author initials="E." surname="Wilde" fullname="E. Wilde"/>
+            <author initials="S." surname="Dalal" fullname="S. Dalal"/>
+            <date year="2023" month="July"/>
+          </front>
+          <seriesInfo name="RFC" value="9457"/>
+          <seriesInfo name="DOI" value="10.17487/RFC9457"/>
+        </reference>
+
+      </references>
+
+    </references>
+
+    <!-- ============================================================ -->
+    <!-- Appendix A: Examples                                         -->
+    <!-- ============================================================ -->
+
+    <section anchor="examples" numbered="false" toc="include">
+      <name>Appendix A. Examples</name>
+
+      <section anchor="example-lifecycle" numbered="false">
+        <name>A.1. Basic Channel Lifecycle</name>
+
+        <t>Client discovers pricing:</t>
+        <artwork type="http-message"><![CDATA[
+GET /.well-known/amp.json HTTP/1.1
+Host: api.example.com
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "amp_version": "1.0",
+  "recipient": "DRYn8vpixzS4paPeQRvMNmtpTvZvBMjfWjrpsUGNKp7H",
+  "program_id": "2d1B2PmumwYWuR82AbXAARTL1nrn8N7Vu9bLXTXUDmVA",
+  "network": "solana:mainnet-beta",
+  "pricing": {
+    "default": {
+      "mode": "per-call",
+      "rate": "10000",
+      "token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "min_deposit": "1000000",
+      "settle_interval": 3600
+    }
+  }
+}
+]]></artwork>
+
+        <t>Client opens channel (one on-chain transaction), then makes a paid request:</t>
+        <artwork type="http-message"><![CDATA[
+GET /v1/inference HTTP/1.1
+Host: api.example.com
+AMP-Channel: 5Cokfvjj3ouG3mE4xeazKbJLfq9NiE1xYfyREhyTfEtN
+AMP-Seq: 1
+AMP-Sig: 3kF9xP2bRnW7vMqDj8K5nEfHYpLzQmA9c4TgU6wXsV2h
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+AMP-Balance: 990000
+
+{"model": "gpt-4", "result": "..."}
+]]></artwork>
+
+        <t>
+          Subsequent requests increment AMP-Seq. Zero on-chain
+          transactions occur. The server settles periodically. The
+          client closes the channel when done.
+        </t>
+      </section>
+
+      <section anchor="example-delegation" numbered="false">
+        <name>A.2. Delegation Flow</name>
+        <t>
+          Agent A opens a channel with a $10 deposit. Agent A sets a
+          delegate (Agent B) with a $3 limit via the on-chain delegate
+          instruction. Agent B signs requests using its own keypair,
+          referencing Agent A's channel. The server verifies Agent B's
+          signature against the delegate field in the on-chain channel
+          state.
+        </t>
+      </section>
+
+      <section anchor="example-chaining" numbered="false">
+        <name>A.3. Channel Chaining</name>
+        <t>
+          Agent A opens a channel with Service B ($10 deposit). Service
+          B needs GPU compute from Service C, so it creates a
+          downstream channel funded from Agent A's upstream vault ($3).
+          The upstream balance decreases to $7. Service C settles the
+          downstream channel. When the downstream channel closes, the
+          remainder returns to Service B. When the upstream channel
+          closes, the remainder returns to Agent A.
+        </t>
+        <artwork type="ascii-art"><![CDATA[
+Agent A --$10--> Service B --$3--> Service C
+                                     |
+                              settled $2.40
+                         refunded $0.60 to B
+                  refunded $7 to A
+]]></artwork>
+      </section>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Appendix B: Acknowledgements                                 -->
+    <!-- ============================================================ -->
+
+    <section anchor="acknowledgements" numbered="false" toc="include">
+      <name>Acknowledgements</name>
+      <t>TBD</t>
+    </section>
+
+  </back>
+</rfc>
