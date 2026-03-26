@@ -1,7 +1,15 @@
 import { PublicKey } from "@solana/web3.js";
 
 export const AMP_PROGRAM_ID = new PublicKey(
+  "2d1B2PmumwYWuR82AbXAARTL1nrn8N7Vu9bLXTXUDmVA"
+);
+
+export const AMP_PROGRAM_ID_DEVNET = new PublicKey(
   "2KQCaQ9j8YtewZ4QjmDfnsVANZXLBcPSYFhAj2eUNaPP"
+);
+
+export const AMP_PROGRAM_ID_MAINNET = new PublicKey(
+  "2d1B2PmumwYWuR82AbXAARTL1nrn8N7Vu9bLXTXUDmVA"
 );
 
 export const CHANNEL_SEED = Buffer.from("amp-channel");

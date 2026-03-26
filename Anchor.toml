@@ -3,10 +3,13 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-amp_channel = "2KQCaQ9j8YtewZ4QjmDfnsVANZXLBcPSYFhAj2eUNaPP"
+amp_channel = "2d1B2PmumwYWuR82AbXAARTL1nrn8N7Vu9bLXTXUDmVA"
 
 [programs.devnet]
 amp_channel = "2KQCaQ9j8YtewZ4QjmDfnsVANZXLBcPSYFhAj2eUNaPP"
+
+[programs.mainnet]
+amp_channel = "2d1B2PmumwYWuR82AbXAARTL1nrn8N7Vu9bLXTXUDmVA"
 
 [registry]
 url = "https://api.apr.dev"

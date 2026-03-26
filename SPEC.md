@@ -350,7 +350,7 @@ The AMP ecosystem consists of three on-chain programs:
 
 | Program | Program ID (placeholder) | Description |
 |---------|--------------------------|-------------|
-| `amp-channel` | `AMPxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` | Channel state, token custody, settlement verification |
+| `amp-channel` | `2d1B2PmumwYWuR82AbXAARTL1nrn8N7Vu9bLXTXUDmVA` (mainnet) / `2KQCaQ9j8YtewZ4QjmDfnsVANZXLBcPSYFhAj2eUNaPP` (devnet) | Channel state, token custody, settlement verification |
 | `amp-registry` | `AMPREGxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` | Service directory and discovery |
 | `amp-reputation` | `AMPREPxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` | On-chain reputation scoring |
 

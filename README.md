@@ -47,9 +47,16 @@ const res = await amp.fetch("https://api.example.com/v1/data");
 - [Diagrams](diagrams/) — channel lifecycle, settlement flow, and architecture diagrams
 - [Examples](examples/) — TypeScript examples for server and client integration
 
+## Deployments
+
+| Network | Program ID |
+|---------|------------|
+| Mainnet | `2d1B2PmumwYWuR82AbXAARTL1nrn8N7Vu9bLXTXUDmVA` |
+| Devnet | `2KQCaQ9j8YtewZ4QjmDfnsVANZXLBcPSYFhAj2eUNaPP` |
+
 ## Status
 
-**Draft — v0.2**
+**v0.2 — Deployed to Mainnet and Devnet**
 
 ## License
 

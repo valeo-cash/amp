@@ -7,7 +7,7 @@ pub mod state;
 
 use instructions::*;
 
-declare_id!("2KQCaQ9j8YtewZ4QjmDfnsVANZXLBcPSYFhAj2eUNaPP");
+declare_id!("2d1B2PmumwYWuR82AbXAARTL1nrn8N7Vu9bLXTXUDmVA");
 
 #[program]
 pub mod amp_channel {

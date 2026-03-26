@@ -1,8 +1,8 @@
-/Users/idealmac/amp/target/release/deps/libshlex-c8274a57fc7484cd.rmeta: /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-6f17d22bba15001f/shlex-1.3.0/src/lib.rs /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-6f17d22bba15001f/shlex-1.3.0/src/bytes.rs
+/Users/idealmac/amp/target/release/deps/libshlex-c8274a57fc7484cd.rmeta: /Users/idealmac/.cargo/registry/src/index.crates.io-6f17d22bba15001f/shlex-1.3.0/src/lib.rs /Users/idealmac/.cargo/registry/src/index.crates.io-6f17d22bba15001f/shlex-1.3.0/src/bytes.rs
 
-/Users/idealmac/amp/target/release/deps/libshlex-c8274a57fc7484cd.rlib: /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-6f17d22bba15001f/shlex-1.3.0/src/lib.rs /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-6f17d22bba15001f/shlex-1.3.0/src/bytes.rs
+/Users/idealmac/amp/target/release/deps/libshlex-c8274a57fc7484cd.rlib: /Users/idealmac/.cargo/registry/src/index.crates.io-6f17d22bba15001f/shlex-1.3.0/src/lib.rs /Users/idealmac/.cargo/registry/src/index.crates.io-6f17d22bba15001f/shlex-1.3.0/src/bytes.rs
 
-/Users/idealmac/amp/target/release/deps/shlex-c8274a57fc7484cd.d: /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-6f17d22bba15001f/shlex-1.3.0/src/lib.rs /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-6f17d22bba15001f/shlex-1.3.0/src/bytes.rs
+/Users/idealmac/amp/target/release/deps/shlex-c8274a57fc7484cd.d: /Users/idealmac/.cargo/registry/src/index.crates.io-6f17d22bba15001f/shlex-1.3.0/src/lib.rs /Users/idealmac/.cargo/registry/src/index.crates.io-6f17d22bba15001f/shlex-1.3.0/src/bytes.rs
 
-/var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-6f17d22bba15001f/shlex-1.3.0/src/lib.rs:
-/var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-6f17d22bba15001f/shlex-1.3.0/src/bytes.rs:
+/Users/idealmac/.cargo/registry/src/index.crates.io-6f17d22bba15001f/shlex-1.3.0/src/lib.rs:
+/Users/idealmac/.cargo/registry/src/index.crates.io-6f17d22bba15001f/shlex-1.3.0/src/bytes.rs:

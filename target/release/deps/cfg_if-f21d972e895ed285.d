@@ -1,7 +1,7 @@
-/Users/idealmac/amp/target/release/deps/libcfg_if-f21d972e895ed285.rmeta: /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-6f17d22bba15001f/cfg-if-1.0.4/src/lib.rs
+/Users/idealmac/amp/target/release/deps/libcfg_if-f21d972e895ed285.rmeta: /Users/idealmac/.cargo/registry/src/index.crates.io-6f17d22bba15001f/cfg-if-1.0.4/src/lib.rs
 
-/Users/idealmac/amp/target/release/deps/libcfg_if-f21d972e895ed285.rlib: /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-6f17d22bba15001f/cfg-if-1.0.4/src/lib.rs
+/Users/idealmac/amp/target/release/deps/libcfg_if-f21d972e895ed285.rlib: /Users/idealmac/.cargo/registry/src/index.crates.io-6f17d22bba15001f/cfg-if-1.0.4/src/lib.rs
 
-/Users/idealmac/amp/target/release/deps/cfg_if-f21d972e895ed285.d: /var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-6f17d22bba15001f/cfg-if-1.0.4/src/lib.rs
+/Users/idealmac/amp/target/release/deps/cfg_if-f21d972e895ed285.d: /Users/idealmac/.cargo/registry/src/index.crates.io-6f17d22bba15001f/cfg-if-1.0.4/src/lib.rs
 
-/var/folders/0y/870sgpg54w983l1j8ss1jljc0000gn/T/cursor-sandbox-cache/216a639df9367248ec5d621d1531bed8/cargo/registry/src/index.crates.io-6f17d22bba15001f/cfg-if-1.0.4/src/lib.rs:
+/Users/idealmac/.cargo/registry/src/index.crates.io-6f17d22bba15001f/cfg-if-1.0.4/src/lib.rs:
