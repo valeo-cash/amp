@@ -1,4 +1,5 @@
 {
-  "buildCommand": "cp -f site/index.html docs/dist/index.html",
-  "outputDirectory": "docs/dist"
+  "buildCommand": "npm install && npx vocs build && cp -f site/index.html docs/dist/index.html",
+  "outputDirectory": "docs/dist",
+  "installCommand": "npm install"
 }
