@@ -13,7 +13,7 @@
     "docs:dev": "vocs dev",
     "docs:build": "vocs build",
     "docs:preview": "vocs preview",
-    "site:build": "vocs build && rm -rf dist && mkdir -p dist/docs && cp site/index.html dist/ && cp -r docs/dist/* dist/docs/",
+    "site:build": "npx vocs build && cp site/index.html dist/index.html",
     "site:preview": "npm run site:build && npx serve dist"
   },
   "dependencies": {
