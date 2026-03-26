@@ -1,0 +1,71 @@
+# FAQ
+
+Frequently asked questions about the AMP protocol.
+
+---
+
+### How is AMP different from x402?
+
+x402 requires one on-chain transaction per API call. The client sends a request, gets a 402 rejection, signs a payment on Base (EVM), and retries with a receipt. Every call costs gas.
+
+AMP opens a channel once and makes unlimited calls with zero per-request transactions. Settlement happens periodically, netting all usage into a single transaction. For 1,000 calls, x402 costs ~$1.00 in gas; AMP costs ~$0.00075.
+
+[Full comparison →](/comparison)
+
+### How is AMP different from MPP?
+
+MPP is a payment-method-agnostic framework that works across multiple rails (Tempo, Stripe, cards, Lightning). AMP is Solana-native — channels are on-chain PDAs, composable with DeFi.
+
+MPP sessions use off-chain vouchers on Tempo; AMP uses off-chain metering with on-chain net settlement on Solana. AMP additionally supports delegation (budget forwarding to sub-agents), channel chaining (agent supply chains), and on-chain reputation scoring.
+
+They serve different needs: MPP for multi-method flexibility, AMP for Solana-native composability.
+
+[Full comparison →](/comparison)
+
+### Is AMP compatible with MPP or x402?
+
+AMP uses HTTP 402 for initial discovery (same status code), but the channel lifecycle is different. AMP is a separate protocol optimized for Solana-native persistent channels. You could run AMP and x402 on different routes of the same server.
+
+### What payment methods does AMP support?
+
+USDC on Solana (SPL token). AMP is intentionally Solana-only for maximum on-chain composability. Any SPL token can be used — the server specifies the accepted mint in its pricing manifest.
+
+### Do I need a Solana wallet?
+
+Yes. Both the agent (client) and service (server) need Solana keypairs. The agent's keypair signs channel operations and request credentials. The server's keypair signs metering proofs for settlement.
+
+### How much does it cost?
+
+The protocol is free and open source. Transaction costs are Solana fees: ~$0.00025 per transaction. A typical channel lifecycle (open + settle + close) costs ~$0.00075 in gas, regardless of how many API calls were made.
+
+### What are channels?
+
+A channel is a persistent financial state object between two parties, stored as a PDA on Solana. The agent deposits funds, consumes services freely, and the service settles periodically. Unlike per-request payments, the channel maintains state across interactions.
+
+[Learn about channels →](/protocol/channels)
+
+### What is delegation?
+
+An agent can assign a portion of its channel budget to a sub-agent. The sub-agent consumes services against the original channel up to a specified limit. This enables multi-agent workflows without each agent needing its own capital.
+
+[Learn about delegation →](/protocol/delegation)
+
+### What is channel chaining?
+
+When Service B needs to call Service C to fulfill a request, Service B can create a downstream channel funded from the upstream channel. Value flows through the chain automatically. No separate capital required.
+
+[Learn about chaining →](/guides/chaining)
+
+### Is it safe?
+
+Channel funds are held in a PDA-owned vault on Solana. Only the AMP program can move funds — via settlement (to recipient) or close (refund to funder). Replay attacks are prevented by monotonic sequence numbers. The client can close the channel at any time to recover unspent funds.
+
+[Security model →](/protocol/channels#security)
+
+### Is AMP deployed?
+
+Yes, to Solana devnet. Program ID: [`2KQCaQ9j8YtewZ4QjmDfnsVANZXLBcPSYFhAj2eUNaPP`](https://explorer.solana.com/address/2KQCaQ9j8YtewZ4QjmDfnsVANZXLBcPSYFhAj2eUNaPP?cluster=devnet). Mainnet deployment is pending security review.
+
+### Who is building AMP?
+
+AMP is built by [Valeo](https://github.com/valeo-cash). The protocol is open source under the MIT license.

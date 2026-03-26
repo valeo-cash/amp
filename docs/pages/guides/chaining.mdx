@@ -1,0 +1,73 @@
+# Channel Chaining
+
+Create agent supply chains where services pay sub-services from the same budget.
+
+---
+
+Channel chaining enables value flow through a chain of services. When Service B needs to call Service C to fulfill a request, Service B can create a downstream channel funded from the upstream channel — no separate capital required.
+
+## The problem
+
+```
+Agent A ──$10──→ Service B (inference API)
+                    ├── needs Service C (GPU) — costs $3
+                    └── needs Service D (data) — costs $1
+
+Without chaining: Service B needs its own $4 to pay C and D
+With chaining: Service B forwards from Agent A's channel
+```
+
+## How it works
+
+1. Agent A opens a channel with Service B ($10 deposit)
+2. Service B creates a downstream channel to Service C ($3 from upstream)
+3. Service B creates another downstream channel to Service D ($1 from upstream)
+4. Agent A's channel now has $6 available for Service B, $3 allocated to C, $1 to D
+5. When downstream channels close, remaining funds return to Service B's balance
+
+## Creating a downstream channel
+
+```typescript
+await program.methods
+  .chainChannel(
+    new BN(3_000_000),  // $3 from upstream
+    new BN(3_000_000),  // rate limit
+    new BN(60),          // settle interval
+    new BN(Date.now())   // nonce
+  )
+  .accounts({
+    upstreamRecipient: serviceB.publicKey,
+    upstreamChannel: upstreamPDA,
+    upstreamVault: upstreamVaultPDA,
+    downstreamRecipient: serviceC.publicKey,
+    mint,
+    downstreamChannel: downstreamPDA,
+    downstreamVault: downstreamVaultPDA,
+    systemProgram: SystemProgram.programId,
+    tokenProgram: TOKEN_PROGRAM_ID,
+  })
+  .signers([serviceB])
+  .rpc()
+```
+
+## Chain depth limits
+
+Chains have a maximum depth (default: 3) to prevent infinite chains:
+
+- Depth 0: Agent → Service (root channel)
+- Depth 1: Service → Sub-service
+- Depth 2: Sub-service → Sub-sub-service
+
+The root channel funder sets `max_chain_depth` at channel open.
+
+## Closing chained channels
+
+Closing works bottom-up:
+1. Leaf channels (no children) must close first
+2. Remaining balance from a downstream channel returns to the upstream vault
+3. Once all children are closed, the parent can close
+
+## Next steps
+
+- [On-chain instructions →](/on-chain/instructions)
+- [Multi-channel netting →](/ecosystem/stratum)

@@ -1,0 +1,36 @@
+# On-Chain Overview
+
+The AMP Solana program and on-chain state.
+
+---
+
+AMP's on-chain component is a Solana program (Anchor-compatible) that manages channel state, token custody, and settlement verification. All financial state is stored on-chain as PDAs. Off-chain components (SDKs, metering) interact with this program.
+
+## Program
+
+The `amp-channel` program handles 6 instructions: open, top-up, settle, close, delegate, and chain. Deployed to Solana devnet.
+
+[Program details →](/on-chain/program)
+
+## Channel State
+
+Each channel is a PDA with 24 fields tracking balances, settlement timing, delegation, and chain state.
+
+[Channel state layout →](/on-chain/channel-state)
+
+## Instructions
+
+Six instructions covering the full channel lifecycle, plus delegation and chaining.
+
+[Instruction reference →](/on-chain/instructions)
+
+## Architecture
+
+```
+Client SDK ←→ Server Middleware ←→ AMP Program ←→ SPL Token Vault
+     │              │                    │
+  off-chain      off-chain           on-chain
+  (signing)      (metering)         (state + custody)
+```
+
+On-chain transactions only occur at channel open, settlement, and close. All consumption is off-chain.

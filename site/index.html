@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AMP — Autonomous Machine Payments</title>
+  <meta name="description" content="The open protocol for persistent machine-to-machine payment channels on Solana.">
+  <link rel="icon" type="image/svg+xml" href="/docs/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --green: #00DE91;
+      --bg: #FAFAFA;
+      --text: #000000;
+      --muted: #666666;
+      --terminal-bg: #F0F0F0;
+      --terminal-border: #E0E0E0;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── Nav ────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 48px;
+      background: rgba(250,250,250,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .nav-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    /* ── Hero ───────────────────────────────── */
+    .hero {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 100px 48px 80px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+    .hero-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: clamp(48px, 7vw, 88px);
+      line-height: 0.95;
+      letter-spacing: -3px;
+      color: var(--text);
+    }
+    .hero-right { max-width: 400px; }
+    .hero-desc {
+      font-size: 17px;
+      line-height: 1.65;
+      color: var(--muted);
+      margin-bottom: 36px;
+    }
+    .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: var(--text);
+      color: #fff;
+      border: 1px solid var(--text);
+    }
+    .btn-primary:hover { background: #222; }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid #ccc;
+    }
+    .btn-secondary:hover { border-color: var(--text); }
+
+    /* ── Terminal ───────────────────────────── */
+    .terminal-section {
+      max-width: 1200px;
+      margin: 0 auto 80px;
+      padding: 0 48px;
+    }
+    .terminal-card {
+      background: var(--terminal-bg);
+      border: 1px solid var(--terminal-border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--terminal-border);
+    }
+    .terminal-dots { display: flex; gap: 7px; }
+    .terminal-dots span {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: #ccc;
+    }
+    .terminal-dots span:nth-child(1) { background: #FF5F57; }
+    .terminal-dots span:nth-child(2) { background: #FEBC2E; }
+    .terminal-dots span:nth-child(3) { background: #28C840; }
+    .terminal-url {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #999;
+    }
+    .terminal-body {
+      padding: 24px 28px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #333;
+      min-height: 420px;
+      overflow-y: auto;
+      position: relative;
+    }
+    .terminal-body .cmd { color: #000; font-weight: 500; }
+    .terminal-body .green { color: var(--green); }
+    .terminal-body .dim { color: #999; }
+    .terminal-body .line { opacity: 0; animation: fadeIn 0.15s forwards; }
+    @keyframes fadeIn { to { opacity: 1; } }
+
+    .terminal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-top: 1px solid var(--terminal-border);
+    }
+    .terminal-footer-brand {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #bbb;
+      text-transform: uppercase;
+    }
+    .restart-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #999;
+      background: none;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .restart-btn:hover { color: #333; border-color: #aaa; }
+
+    /* ── Responsive ─────────────────────────── */
+    @media (max-width: 768px) {
+      nav { padding: 14px 20px; }
+      .nav-links { gap: 20px; }
+      .hero {
+        grid-template-columns: 1fr;
+        padding: 60px 20px 40px;
+        gap: 40px;
+      }
+      .hero-title { font-size: 48px; letter-spacing: -2px; }
+      .hero-right { max-width: 100%; }
+      .terminal-section { padding: 0 20px; }
+      .terminal-body { font-size: 11px; min-height: 360px; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <a href="/" class="nav-logo">AMP</a>
+    <div class="nav-links">
+      <a href="/docs/overview">Docs</a>
+      <a href="/docs/services">Services</a>
+      <a href="https://github.com/valeo-cash/amp" target="_blank">GitHub ↗</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div>
+      <h1 class="hero-title">AUTONOMOUS<br>MACHINE<br>PAYMENTS</h1>
+    </div>
+    <div class="hero-right">
+      <p class="hero-desc">
+        The open protocol for persistent machine-to-machine payment channels on Solana.
+        Open a channel once, consume freely — agents and services settle net.
+      </p>
+      <div class="hero-buttons">
+        <a href="/docs/quickstart/agent" class="btn btn-primary">Use with agents</a>
+        <a href="/docs/quickstart/server" class="btn btn-secondary">Add to your API</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Terminal -->
+  <section class="terminal-section">
+    <div class="terminal-card">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span></span><span></span><span></span>
+        </div>
+        <span class="terminal-url">amp.valeoprotocol.io</span>
+        <div style="width:52px"></div>
+      </div>
+      <div class="terminal-body" id="terminal"></div>
+      <div class="terminal-footer">
+        <button class="restart-btn" onclick="runTerminal()">Restart ↺</button>
+        <span class="terminal-footer-brand">Built by Valeo</span>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const lines = [
+      { text: '$ amp pay https://api.example.com/v1/inference', cls: 'cmd', delay: 0, typing: true },
+      { text: '', delay: 400 },
+      { text: 'Discovering pricing...', cls: 'dim', delay: 300 },
+      { text: '  <span class="green">✓</span> Found /.well-known/amp.json', delay: 600 },
+      { text: '  Rate: $0.01/call  |  Token: USDC  |  Solana devnet', cls: 'dim', delay: 200 },
+      { text: '', delay: 400 },
+      { text: 'Opening channel...', cls: 'dim', delay: 300 },
+      { text: '  <span class="green">✓</span> Channel opened: <span class="dim">5Cokfvjj...Xk3R</span>', delay: 800 },
+      { text: '  Deposit: 5.00 USDC', cls: 'dim', delay: 150 },
+      { text: '  TX: <span class="dim">4cyReAHt...9mPq</span>', delay: 150 },
+      { text: '', delay: 500 },
+      { text: 'Making paid request...', cls: 'dim', delay: 300 },
+      { text: '  → AMP-Channel: 5Cokfvjj...Xk3R', cls: 'dim', delay: 150 },
+      { text: '  → AMP-Seq: 1', cls: 'dim', delay: 100 },
+      { text: '  → AMP-Sig: 3kF9xP2b...nW7v', cls: 'dim', delay: 100 },
+      { text: '  <span class="green">✓</span> 200 OK <span class="dim">(12ms)</span>', delay: 500 },
+      { text: '', delay: 200 },
+      { text: '  Response: { "model": "gpt-4", "tokens": 847, "result": "..." }', cls: 'dim', delay: 300 },
+      { text: '', delay: 500 },
+      { text: 'Channel balance: <span class="green">4.99 USDC</span> <span class="dim">(metered off-chain, no settlement yet)</span>', delay: 300 },
+      { text: '', delay: 600 },
+      { text: 'Closing channel...', cls: 'dim', delay: 300 },
+      { text: '  <span class="green">✓</span> Channel closed: <span class="dim">37GAMqKQ...bR2j</span>', delay: 700 },
+      { text: '  Refunded: <span class="green">4.99 USDC</span>', delay: 150 },
+      { text: '  Total spent: $0.01 (1 call)', cls: 'dim', delay: 150 },
+      { text: '  On-chain txns: 2 (open + close)', cls: 'dim', delay: 150 },
+    ];
+
+    let animationId = 0;
+
+    async function runTerminal() {
+      const id = ++animationId;
+      const el = document.getElementById('terminal');
+      el.innerHTML = '';
+
+      for (const line of lines) {
+        if (id !== animationId) return;
+        await sleep(line.delay || 200);
+        if (id !== animationId) return;
+
+        const div = document.createElement('div');
+        div.className = 'line';
+        if (line.cls) div.classList.add(line.cls);
+
+        if (line.typing && line.text) {
+          el.appendChild(div);
+          for (let i = 0; i < line.text.length; i++) {
+            if (id !== animationId) return;
+            div.textContent += line.text[i];
+            await sleep(25);
+          }
+        } else {
+          div.innerHTML = line.text || '&nbsp;';
+          el.appendChild(div);
+        }
+
+        el.scrollTop = el.scrollHeight;
+      }
+    }
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) {
+        observer.disconnect();
+        runTerminal();
+      }
+    }, { threshold: 0.3 });
+    observer.observe(document.getElementById('terminal'));
+  </script>
+
+</body>
+</html>

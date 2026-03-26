@@ -1,0 +1,78 @@
+# HTTP Transport
+
+How AMP credentials are carried over HTTP.
+
+---
+
+HTTP is the primary transport for AMP. Credentials are sent as request headers, pricing is discovered via a well-known endpoint or 402 response headers.
+
+## Discovery
+
+### Well-known endpoint
+
+Servers expose pricing at `GET /.well-known/amp.json`:
+
+```json
+{
+  "amp_version": "1.0",
+  "recipient": "<server_pubkey_base58>",
+  "program_id": "2KQCaQ9j8YtewZ4QjmDfnsVANZXLBcPSYFhAj2eUNaPP",
+  "network": "solana:mainnet-beta",
+  "pricing": {
+    "default": {
+      "mode": "per-call",
+      "rate": "1000",
+      "token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "minDeposit": "1000000",
+      "settleInterval": 3600
+    },
+    "routes": {
+      "/v1/inference": { "mode": "per-call", "rate": "10000" }
+    }
+  }
+}
+```
+
+### 402 response headers
+
+When a request arrives without AMP credentials, the server responds with `402 Payment Required` and these headers:
+
+```
+HTTP/1.1 402 Payment Required
+AMP-Version: 1.0
+AMP-Pricing: {"mode":"per-call","rate":"1000","token":"EPjFWdd5...","minDeposit":"1000000","settleInterval":3600}
+AMP-Recipient: <server_pubkey_base58>
+AMP-Program: 2KQCaQ9j8YtewZ4QjmDfnsVANZXLBcPSYFhAj2eUNaPP
+AMP-Network: solana:mainnet-beta
+```
+
+## Request credentials
+
+Include three headers with every request:
+
+| Header | Value | Example |
+|--------|-------|---------|
+| `AMP-Channel` | Channel PDA address (base58) | `9fhH5Jbg7VWx...` |
+| `AMP-Seq` | Monotonic sequence number | `42` |
+| `AMP-Sig` | Ed25519 signature of seq (base58) | `3xKn9P2b...` |
+
+The signature is computed over the sequence number encoded as a little-endian u64 (8 bytes), signed with the funder's (or delegate's) Ed25519 keypair.
+
+## Response headers
+
+The server includes the remaining balance in the response:
+
+```
+AMP-Balance: 8500000
+```
+
+## Error responses
+
+```json
+{
+  "error": "AMP_UNDERFUNDED",
+  "message": "Channel balance is 500 but minimum required is 1000.",
+  "channel": "<channel_pda>",
+  "balance": 500
+}
+```

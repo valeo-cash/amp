@@ -1,0 +1,54 @@
+# Protocol Overview
+
+How AMP works under the hood.
+
+---
+
+AMP is a financial state protocol. Instead of processing a payment per request, it maintains a persistent financial relationship between two parties through an on-chain channel.
+
+## Payment flow
+
+1. **Client requests a resource** — `GET /v1/data` with no payment headers
+2. **Server returns pricing** — `402 Payment Required` with `AMP-Pricing`, `AMP-Recipient`, `AMP-Program` headers
+3. **Client opens a channel** — one Solana transaction deposits funds into a PDA-owned vault
+4. **Client retries with credentials** — `AMP-Channel`, `AMP-Seq`, `AMP-Sig` headers
+5. **Server validates and serves** — verifies channel state, signature, and sequence number. Returns `200 OK`
+6. **Repeat** — steps 4-5 for all subsequent requests. Zero on-chain transactions.
+7. **Server settles periodically** — one Solana transaction covers all accumulated usage
+8. **Client closes channel** — remaining balance is refunded
+
+## Core concepts
+
+### [Channels](/protocol/channels)
+A persistent financial state object between a funder and recipient, stored as a PDA on Solana. Holds deposited tokens in a vault. Lifecycle: Open, Active, Settled (repeating), Closed.
+
+### [Metering](/protocol/metering)
+Off-chain usage tracking by the server. Modes: per-call, per-second, per-byte, per-compute. No on-chain transactions during consumption.
+
+### [Settlement](/protocol/settlement)
+On-chain transfer of owed funds from the vault to the recipient. Always net — one transaction covers all usage since the last settlement.
+
+### [Delegation](/protocol/delegation)
+A funder assigns consumption rights to a delegate pubkey. The delegate can consume services against the channel up to a specified limit.
+
+## Error codes
+
+| Code | Description | HTTP Status |
+|------|-------------|-------------|
+| `AMP_NO_CHANNEL` | No valid channel for this request | 402 |
+| `AMP_UNDERFUNDED` | Channel balance below minimum | 402 |
+| `AMP_CLOSED` | Channel has been closed | 410 |
+| `AMP_RATE_EXCEEDED` | Usage exceeds channel rate limit | 429 |
+| `AMP_INVALID_SEQ` | Sequence number not monotonically increasing | 400 |
+| `AMP_INVALID_SIG` | Signature verification failed | 401 |
+| `AMP_SETTLE_EARLY` | Settlement attempted before interval elapsed | 425 |
+| `AMP_DEPOSIT_LOW` | Initial deposit below server minimum | 400 |
+| `AMP_INVALID_PROOF` | Metering proof signature invalid | 400 |
+
+## Transports
+
+AMP is transport-agnostic. Defined bindings for:
+- [HTTP](/protocol/transports/http) — headers on every request
+- [MCP / JSON-RPC](/protocol/transports/mcp) — `_amp` credentials in tool calls
+- [WebSocket](/protocol/transports/websocket) — JSON or binary frame prefix
+- [gRPC](/protocol/transports/grpc) — metadata keys

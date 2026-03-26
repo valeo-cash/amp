@@ -1,0 +1,71 @@
+# Accept Delegated Payments
+
+Let agents delegate channel budget to sub-agents.
+
+---
+
+Delegation lets an agent assign a portion of its channel budget to another keypair. The delegate can consume services against the channel up to a specified limit — no separate capital required.
+
+## How it works
+
+1. Agent A opens a channel with $10
+2. Agent A delegates $3 to Agent B's pubkey
+3. Agent B makes requests using Agent A's channel, signing with its own key
+4. The server verifies Agent B's signature against the channel's `delegate` field
+
+## Setting a delegate
+
+```typescript
+import { Keypair } from "@solana/web3.js"
+
+// Agent A's channel is already open
+const subAgentKeypair = Keypair.generate()
+
+await program.methods
+  .setDelegate(subAgentKeypair.publicKey, new BN(3_000_000)) // $3 limit
+  .accounts({
+    funder: agentA.publicKey,
+    channelState: channelPDA,
+  })
+  .signers([agentA])
+  .rpc()
+```
+
+## Sub-agent consumption
+
+The sub-agent signs requests with its own keypair. The server checks the `delegate` field of the on-chain ChannelState:
+
+```typescript
+// Sub-agent signs seq numbers with its own key
+const seqBuf = Buffer.alloc(8)
+seqBuf.writeBigUInt64LE(BigInt(seq))
+const sig = nacl.sign.detached(seqBuf, subAgentKeypair.secretKey)
+
+// Send request with the same channel PDA
+fetch("https://api.example.com/v1/data", {
+  headers: {
+    "AMP-Channel": channelPDA.toBase58(),
+    "AMP-Seq": seq.toString(),
+    "AMP-Sig": bs58.encode(sig),
+  },
+})
+```
+
+## Server-side validation
+
+The server middleware automatically checks both the funder and delegate pubkeys when verifying signatures. No additional server configuration is needed.
+
+## On-chain state
+
+The ChannelState PDA stores:
+
+| Field | Description |
+|-------|-------------|
+| `delegate` | The delegate's pubkey (or null) |
+| `delegate_limit` | Maximum amount the delegate can consume |
+| `delegate_consumed` | Amount the delegate has consumed so far |
+
+## Next steps
+
+- [Channel chaining →](/guides/chaining)
+- [Delegation protocol details →](/protocol/delegation)

@@ -1,0 +1,129 @@
+# Instructions
+
+The six instructions of the amp-channel program.
+
+---
+
+## open_channel
+
+Create a new channel between funder and recipient.
+
+**Arguments:**
+
+| Arg | Type | Description |
+|-----|------|-------------|
+| `deposit` | u64 | Initial deposit (token smallest unit) |
+| `rate_limit` | u64 | Max tokens per settle interval |
+| `settle_interval` | i64 | Seconds between settlements (min: 60) |
+| `nonce` | u64 | Channel nonce |
+
+**Accounts:** funder (signer), recipient, mint, channelState (init, PDA), vault (init, PDA), funderTokenAccount, systemProgram, tokenProgram
+
+```typescript
+await program.methods
+  .openChannel(new BN(1_000_000), new BN(500_000), new BN(3600), new BN(0))
+  .accounts({
+    funder: funder.publicKey, recipient: recipient.publicKey, mint,
+    channelState: channelPDA, vault: vaultPDA,
+    funderTokenAccount: funderAta,
+    systemProgram: SystemProgram.programId, tokenProgram: TOKEN_PROGRAM_ID,
+  })
+  .signers([funder]).rpc()
+```
+
+---
+
+## top_up
+
+Add funds to an active channel.
+
+**Arguments:** `amount: u64`
+
+**Accounts:** funder (signer), channelState, vault, funderTokenAccount, tokenProgram
+
+```typescript
+await program.methods.topUp(new BN(500_000))
+  .accounts({ funder: funder.publicKey, channelState: channelPDA, vault: vaultPDA,
+    funderTokenAccount: funderAta, tokenProgram: TOKEN_PROGRAM_ID })
+  .signers([funder]).rpc()
+```
+
+---
+
+## settle
+
+Transfer owed funds from vault to recipient.
+
+**Arguments:** `amount: u64`
+
+**Constraints:** channel active, amount within balance and rate limit, settle interval elapsed.
+
+**Accounts:** authority (signer — recipient or stratum authority), channelState, vault, recipientTokenAccount, tokenProgram
+
+```typescript
+await program.methods.settle(new BN(200_000))
+  .accounts({ authority: recipient.publicKey, channelState: channelPDA, vault: vaultPDA,
+    recipientTokenAccount: recipientAta, tokenProgram: TOKEN_PROGRAM_ID })
+  .signers([recipient]).rpc()
+```
+
+---
+
+## close_channel
+
+Close a channel with optional final settlement. Refunds remaining balance.
+
+**Arguments:** `final_settle_amount: u64`
+
+**Constraints:** channel active, no active child channels, closer is funder or recipient.
+
+**Accounts:** closer (signer), funder, recipient, channelState (closed), vault (closed), funderTokenAccount, recipientTokenAccount, tokenProgram, parentChannelState (optional)
+
+```typescript
+await program.methods.closeChannel(new BN(100_000))
+  .accounts({ closer: funder.publicKey, funder: funder.publicKey,
+    recipient: recipient.publicKey, channelState: channelPDA, vault: vaultPDA,
+    funderTokenAccount: funderAta, recipientTokenAccount: recipientAta,
+    tokenProgram: TOKEN_PROGRAM_ID, parentChannelState: null })
+  .signers([funder]).rpc()
+```
+
+---
+
+## set_delegate
+
+Assign a delegate who can consume against the channel.
+
+**Arguments:** `delegate_pubkey: Pubkey`, `limit: u64`
+
+**Constraints:** channel active, funder is signer, limit within balance.
+
+```typescript
+await program.methods.setDelegate(delegatePubkey, new BN(3_000_000))
+  .accounts({ funder: funder.publicKey, channelState: channelPDA })
+  .signers([funder]).rpc()
+```
+
+---
+
+## chain_channel
+
+Create a downstream channel funded from an upstream channel's vault.
+
+**Arguments:** `amount: u64`, `rate_limit: u64`, `settle_interval: i64`, `nonce: u64`
+
+**Constraints:** upstream active, signer is upstream recipient, chain depth within limit.
+
+**Accounts:** upstreamRecipient (signer), upstreamChannel, upstreamVault, downstreamRecipient, mint, downstreamChannel (init), downstreamVault (init), systemProgram, tokenProgram
+
+```typescript
+await program.methods
+  .chainChannel(new BN(3_000_000), new BN(3_000_000), new BN(60), new BN(nonce))
+  .accounts({
+    upstreamRecipient: serviceB.publicKey, upstreamChannel: upstreamPDA,
+    upstreamVault: upstreamVaultPDA, downstreamRecipient: serviceC.publicKey, mint,
+    downstreamChannel: downstreamPDA, downstreamVault: downstreamVaultPDA,
+    systemProgram: SystemProgram.programId, tokenProgram: TOKEN_PROGRAM_ID,
+  })
+  .signers([serviceB]).rpc()
+```

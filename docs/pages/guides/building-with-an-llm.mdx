@@ -1,0 +1,41 @@
+# Build with an LLM
+
+Use your coding agent to add AMP payments in seconds.
+
+---
+
+Paste one of these prompts into your coding agent (Cursor, Windsurf, Claude, etc.) to add AMP payments to your project.
+
+## Add payments to your API
+
+```
+Reference https://amp.valeoprotocol.io/quickstart/server
+
+Add AMP payments to my Express server. Charge $0.01 per call in USDC on Solana.
+```
+
+## Build an agent that pays for APIs
+
+```
+Reference https://amp.valeoprotocol.io/quickstart/agent
+
+Add AMP payment support to my agent. Budget $10 USDC.
+Use amp.fetch() as a drop-in replacement for fetch().
+```
+
+## Add per-tool pricing to an MCP server
+
+```
+Reference https://amp.valeoprotocol.io/protocol/transports/mcp
+
+Add AMP per-tool pricing to my MCP server.
+generate_image costs $0.05/call, search_web costs $0.005/call.
+```
+
+## Key resources for your LLM
+
+- [Full protocol spec](https://github.com/valeo-cash/amp/blob/main/SPEC.md) — the complete technical reference
+- [Server quickstart](/quickstart/server) — Express middleware setup
+- [Agent quickstart](/quickstart/agent) — AMPClient usage
+- [TypeScript SDK](/sdk/typescript) — API surface and types
+- [On-chain instructions](/on-chain/instructions) — Anchor program interface

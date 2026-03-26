@@ -1,0 +1,166 @@
+# TypeScript SDK
+
+API reference for the AMP TypeScript packages.
+
+---
+
+## @valeo/amp-core
+
+Shared types and utilities used by both server and client.
+
+### PDA derivation
+
+```typescript
+import { deriveChannelPDA, deriveVaultPDA } from "@valeo/amp-core"
+
+const [channelPDA, bump] = deriveChannelPDA(funderPubkey, recipientPubkey, nonce)
+const [vaultPDA] = deriveVaultPDA(channelPDA)
+```
+
+### Channel queries
+
+```typescript
+import { fetchChannel, findChannelsByFunder, isChannelHealthy } from "@valeo/amp-core"
+
+const channel = await fetchChannel(channelPDA, program)
+const channels = await findChannelsByFunder(program, funderPubkey)
+const healthy = isChannelHealthy(channel)
+```
+
+### Metering proofs
+
+```typescript
+import { signMeteringProof, verifyMeteringProof } from "@valeo/amp-core"
+
+const proof = signMeteringProof({ channel, amount, callCount, periodStart, periodEnd, seqStart, seqEnd }, serverKeypair)
+const valid = verifyMeteringProof(proof, serverPubkey)
+```
+
+### Constants
+
+```typescript
+import { AMP_PROGRAM_ID, USDC_MINT, USDC_DECIMALS, AMP_VERSION } from "@valeo/amp-core"
+```
+
+---
+
+## @valeo/amp-server
+
+### AMP class
+
+The main server integration. Two patterns:
+
+```typescript
+import { AMP } from "@valeo/amp-server"
+
+// One-liner
+app.use(AMP.middleware({ rate: "0.001/call" }))
+
+// Full config
+const amp = new AMP({
+  wallet: Keypair,
+  connection: Connection,
+  pricing: PricingConfig,
+  routes?: Record<string, Partial<PricingConfig>>,
+  settlement?: { auto?: boolean, interval?: number },
+  network?: string,
+  programId?: PublicKey,
+})
+
+app.use(amp.middleware())
+```
+
+### AMPContext
+
+Attached to `req.amp` after successful validation:
+
+```typescript
+interface AMPContext {
+  channel: PublicKey       // channel PDA
+  channelState: ChannelState
+  seq: number              // request sequence number
+  balance: bigint          // current channel balance
+  isDelegate: boolean      // whether request is from a delegate
+}
+```
+
+### AMPMcpServer
+
+```typescript
+import { AMPMcpServer } from "@valeo/amp-server"
+
+const server = new AMPMcpServer({
+  wallet, connection,
+  tools: {
+    tool_name: {
+      description: string,
+      pricing: PricingConfig,
+      inputSchema: object,
+      handler: async (args, ampContext) => result,
+    }
+  }
+})
+```
+
+### Standalone utilities
+
+```typescript
+import { parseRateString, buildPricingManifest, validateRequest, verifyAmpSig } from "@valeo/amp-server"
+
+const pricing = parseRateString("0.001/call")  // → PricingConfig
+const manifest = buildPricingManifest(config)   // → AmpPricingManifest
+const result = await validateRequest(channelPDA, seq, sig, program, cache)
+const valid = verifyAmpSig(seq, sig, pubkey)    // → boolean
+```
+
+---
+
+## @valeo/amp-client
+
+### AMPClient
+
+```typescript
+import { AMPClient } from "@valeo/amp-client"
+
+const amp = new AMPClient({
+  wallet: Keypair,
+  connection: Connection,
+  budget: number,              // human units (e.g. 10.00)
+  token?: string | PublicKey,  // default: "USDC"
+  settleInterval?: number,     // default: 3600
+  programId?: PublicKey,
+})
+```
+
+**Methods:**
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `fetch(url, options?)` | `AMPResponse` | Drop-in fetch with auto channel management |
+| `openChannel(opts)` | `PublicKey` | Explicitly open a channel |
+| `topUp(channel, amount)` | `string` | Add funds (returns tx sig) |
+| `close(channel)` | `string` | Close one channel |
+| `closeAll()` | `Map<string, string>` | Close all channels |
+| `getChannels()` | `Map<string, ChannelHandle>` | Get all active channels |
+| `getRemainingBudget()` | `number` | Total remaining across channels |
+
+### AMPMcpClient
+
+```typescript
+import { AMPMcpClient } from "@valeo/amp-client"
+
+const client = new AMPMcpClient({ wallet, connection, budget: 5.0 })
+await client.connect("http://localhost:3000/mcp")
+const tools = client.listTools()
+const result = await client.callTool("tool_name", { arg: "value" })
+await client.close()
+```
+
+### Discovery
+
+```typescript
+import { discoverPricing } from "@valeo/amp-client"
+
+const pricing = await discoverPricing("https://api.example.com/v1/data")
+// Tries /.well-known/amp.json, falls back to 402 header parsing
+```

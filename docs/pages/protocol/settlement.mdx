@@ -1,0 +1,75 @@
+# Settlement
+
+On-chain transfer of owed funds from the vault to the recipient.
+
+---
+
+Settlement is the process of moving tokens from the channel vault to the recipient, based on accumulated usage. Settlement is always net — one on-chain transaction covers all usage since the last settlement, regardless of how many API calls occurred.
+
+## When settlement happens
+
+Settlement is triggered when any of these conditions are met:
+
+- **Time interval** — `settle_interval` seconds have elapsed since the last settlement
+- **Usage threshold** — accumulated usage exceeds a server-defined amount
+- **Explicit request** — either party requests settlement
+- **Channel close** — final settlement occurs automatically on close
+
+## Settlement process
+
+1. Server constructs a metering proof (see [Metering](/protocol/metering))
+2. Server submits the `settle` instruction to the AMP program
+3. Program verifies: amount is within balance and rate limit, settle interval has elapsed
+4. Program transfers tokens from vault to recipient's token account
+5. Program updates: `balance -= amount`, `total_consumed += amount`, `last_settle_ts = now`
+
+```typescript
+await program.methods
+  .settle(new BN(settleAmount))
+  .accounts({
+    authority: recipientKeypair.publicKey,
+    channelState: channelPDA,
+    vault: vaultPDA,
+    recipientTokenAccount: recipientAta,
+    tokenProgram: TOKEN_PROGRAM_ID,
+  })
+  .signers([recipientKeypair])
+  .rpc()
+```
+
+## Rate limiting
+
+The `rate_limit` field on the channel constrains the maximum amount that can be settled per interval. This protects the funder from excessive charges:
+
+- `settle` instruction verifies `amount <= rate_limit`
+- `settle` instruction verifies `now >= last_settle_ts + settle_interval`
+
+## Auto-settlement
+
+The server SDK includes an auto-settlement engine that runs a background loop:
+
+```typescript
+const amp = new AMP({
+  // ...
+  settlement: {
+    auto: true,      // start auto-settlement (default: true)
+    interval: 3600,  // settle every hour
+  },
+})
+```
+
+## Net clearing
+
+The key advantage over per-request protocols:
+
+| Protocol | 1,000 calls | On-chain transactions |
+|----------|-------------|----------------------|
+| x402 | 1,000 payments | 1,000 |
+| AMP | 1 settlement | 1 |
+
+The server accumulates all usage off-chain and settles the total in a single transaction.
+
+## Next steps
+
+- [Channels →](/protocol/channels)
+- [On-chain instructions →](/on-chain/instructions)

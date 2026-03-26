@@ -1,0 +1,80 @@
+# Channel State
+
+The ChannelState PDA account layout.
+
+---
+
+Each channel is stored as a Program Derived Address (PDA) on Solana. The PDA holds all financial state for the channel.
+
+## PDA derivation
+
+```
+Seeds: [b"amp-channel", funder_pubkey, recipient_pubkey, nonce_le_bytes]
+```
+
+The vault token account is a separate PDA:
+
+```
+Seeds: [b"amp-vault", channel_state_pubkey]
+```
+
+## Account layout
+
+Total size: 329 bytes (+ 8 byte discriminator = 337 bytes)
+
+| Field | Type | Size | Description |
+|-------|------|------|-------------|
+| `bump` | u8 | 1 | PDA bump seed |
+| `funder` | Pubkey | 32 | Channel funder (payer / agent) |
+| `recipient` | Pubkey | 32 | Channel recipient (service provider) |
+| `mint` | Pubkey | 32 | SPL token mint (e.g. USDC) |
+| `vault` | Pubkey | 32 | Token account holding channel funds |
+| `balance` | u64 | 8 | Current available balance |
+| `total_deposited` | u64 | 8 | Lifetime deposits |
+| `total_consumed` | u64 | 8 | Lifetime settled amount |
+| `rate_limit` | u64 | 8 | Max tokens per settle interval |
+| `settle_interval` | i64 | 8 | Seconds between settlements |
+| `last_settle_ts` | i64 | 8 | Last settlement timestamp |
+| `nonce` | u64 | 8 | Channel nonce |
+| `status` | u8 | 1 | 0 = Active, 1 = Closed |
+| `created_at` | i64 | 8 | Creation timestamp |
+| `delegate` | `Option<Pubkey>` | 33 | Optional delegate pubkey |
+| `delegate_limit` | u64 | 8 | Max delegate consumption |
+| `delegate_consumed` | u64 | 8 | Current delegate consumption |
+| `stratum_enabled` | bool | 1 | Opt into multi-channel netting |
+| `stratum_cycle` | i64 | 8 | Netting cycle interval |
+| `stratum_authority` | `Option<Pubkey>` | 33 | Stratum engine pubkey |
+| `parent_channel` | `Option<Pubkey>` | 33 | Upstream channel (for chaining) |
+| `child_channels` | u8 | 1 | Active downstream channels |
+| `max_chain_depth` | u8 | 1 | Max chain depth (default: 3) |
+| `chain_depth` | u8 | 1 | Current chain depth (0 = root) |
+
+## Status values
+
+| Value | Meaning |
+|-------|---------|
+| 0 | Active — channel is open and accepting requests |
+| 1 | Closed — channel is closed, accounts reclaimed |
+
+## Querying channels
+
+Find channels by funder:
+
+```typescript
+const channels = await program.account.channelState.all([
+  { memcmp: { offset: 9, bytes: funderPubkey.toBase58() } }
+])
+```
+
+Find channels by recipient:
+
+```typescript
+const channels = await program.account.channelState.all([
+  { memcmp: { offset: 41, bytes: recipientPubkey.toBase58() } }
+])
+```
+
+## Next steps
+
+- [Instructions →](/on-chain/instructions)
+- [Program →](/on-chain/program)

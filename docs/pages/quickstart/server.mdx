@@ -1,0 +1,123 @@
+# Add Payments to Your API
+
+Accept AMP payments for your API endpoints in under 5 minutes.
+
+---
+
+## Using an LLM?
+
+Paste this into your coding agent:
+
+```
+Reference https://amp.valeoprotocol.io/quickstart/server
+Add AMP payments to my Express server with a /v1/data route
+that charges $0.01 per request using USDC on Solana.
+```
+
+## Install
+
+```bash
+npm install @valeo/amp-server @solana/web3.js
+```
+
+## One-liner setup
+
+The fastest way to add AMP payments:
+
+```typescript
+import express from "express"
+import { AMP } from "@valeo/amp-server"
+
+const app = express()
+
+// Protect all routes — $0.001 per call
+app.use(AMP.middleware({ rate: "0.001/call" }))
+
+app.get("/v1/data", (req, res) => {
+  res.json({
+    message: "Hello from a paid API!",
+    channel: req.amp?.channel?.toBase58(),
+  })
+})
+
+app.listen(3000)
+```
+
+This does everything automatically:
+- Returns `402` with pricing headers when no AMP credentials are present
+- Validates the channel on-chain
+- Verifies Ed25519 signatures
+- Meters usage
+- Auto-settles periodically
+
+## Full configuration
+
+For production, provide your own keypair and connection:
+
+```typescript
+import { AMP } from "@valeo/amp-server"
+import { Keypair, Connection } from "@solana/web3.js"
+
+const serverKeypair = Keypair.fromSecretKey(/* your key */)
+const connection = new Connection("https://api.mainnet-beta.solana.com")
+
+const amp = new AMP({
+  wallet: serverKeypair,
+  connection,
+  pricing: {
+    mode: "per-call",
+    rate: "10000",        // $0.01 in USDC (6 decimals)
+    token: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    minDeposit: "1000000", // $1.00 minimum channel deposit
+    settleInterval: 3600,  // settle every hour
+  },
+  routes: {
+    "/v1/inference": { mode: "per-call", rate: "100000" },   // $0.10/call
+    "/v1/stream":    { mode: "per-second", rate: "1000" },    // $0.001/sec
+  },
+  settlement: { auto: true, interval: 3600 },
+})
+
+// Serve pricing manifest
+app.get("/.well-known/amp.json", amp.wellKnownHandler())
+
+// Protected endpoints
+app.use("/v1", amp.middleware())
+```
+
+## Pricing manifest
+
+AMP clients discover your pricing via `/.well-known/amp.json`:
+
+```json
+{
+  "amp_version": "1.0",
+  "recipient": "<your_pubkey>",
+  "program_id": "2KQCaQ9j8YtewZ4QjmDfnsVANZXLBcPSYFhAj2eUNaPP",
+  "network": "solana:mainnet-beta",
+  "pricing": {
+    "default": {
+      "mode": "per-call",
+      "rate": "10000",
+      "token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "minDeposit": "1000000",
+      "settleInterval": 3600
+    }
+  }
+}
+```
+
+## What happens when a client connects
+
+1. Client sends `GET /v1/data` with no AMP headers
+2. Your middleware returns `402` with `AMP-Pricing` headers
+3. Client opens a channel on-chain (deposits USDC)
+4. Client retries with `AMP-Channel`, `AMP-Seq`, `AMP-Sig` headers
+5. Middleware validates, meters, and calls `next()`
+6. Your handler runs normally — `req.amp` has channel context
+
+## Next steps
+
+- [Accept streaming payments →](/guides/streaming)
+- [Protocol details →](/protocol)
+- [TypeScript SDK reference →](/sdk/typescript)

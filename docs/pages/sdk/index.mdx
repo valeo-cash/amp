@@ -1,0 +1,51 @@
+# SDKs
+
+Official AMP SDKs for integrating with the protocol.
+
+---
+
+## TypeScript
+
+The primary SDK, with three packages:
+
+| Package | Description |
+|---------|-------------|
+| [`@valeo/amp-core`](https://github.com/valeo-cash/amp/tree/main/packages/core) | Shared types, PDA derivation, constants, metering proof utilities |
+| [`@valeo/amp-server`](https://github.com/valeo-cash/amp/tree/main/packages/server) | Express middleware, MCP server, metering engine, auto-settlement |
+| [`@valeo/amp-client`](https://github.com/valeo-cash/amp/tree/main/packages/client) | Agent SDK, `amp.fetch()`, auto-discovery, channel lifecycle |
+
+[TypeScript SDK reference →](/sdk/typescript)
+
+## Install
+
+```bash
+# Server
+npm install @valeo/amp-server
+
+# Client
+npm install @valeo/amp-client
+
+# Core (included as dependency of both)
+npm install @valeo/amp-core
+```
+
+## Quick examples
+
+### Server
+
+```typescript
+import { AMP } from "@valeo/amp-server"
+app.use(AMP.middleware({ rate: "0.001/call" }))
+```
+
+### Client
+
+```typescript
+import { AMPClient } from "@valeo/amp-client"
+const amp = new AMPClient({ wallet, connection, budget: 10.00, token: "USDC" })
+const res = await amp.fetch("https://api.example.com/v1/data")
+```
+
+## Other languages
+
+Python and Rust SDKs are planned. In the meantime, any language that can interact with Solana and sign Ed25519 can implement the AMP protocol using the [specification](https://github.com/valeo-cash/amp/blob/main/SPEC.md).

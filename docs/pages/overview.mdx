@@ -1,0 +1,51 @@
+# Autonomous Machine Payments Protocol
+
+The open protocol for persistent machine-to-machine payment channels.
+
+---
+
+The Autonomous Machine Payments Protocol (AMP) lets any client — agents, apps, or humans — pay for any service through persistent payment channels on Solana. Developers use AMP to let their agents pay for services. Service operators use AMP to accept payments for their APIs. Unlike per-request protocols (x402, MPP charge), AMP opens a channel once and consumes freely — zero payment friction per call.
+
+## Who is AMP for?
+
+**Developers** build apps and agents that consume paid services. You integrate an AMP client so your agent can discover, pay for, and use third-party APIs without per-request payment overhead.
+
+**Agents** are the entities that take action — calling APIs, generating images, querying data. They pay for services autonomously through persistent channels with deposited budgets.
+
+**Services** operate APIs that charge for access. You integrate AMP middleware to accept payments with zero per-request friction. Settlement happens automatically in the background.
+
+## The problem with per-request payments
+
+Current protocols (x402, MPP charge) require a payment transaction for every API call. This creates three systemic problems:
+
+1. **Per-call latency.** Every request requires payment verification, adding round-trips.
+2. **Per-call on-chain costs.** Each payment produces an on-chain transaction — O(N) cost for N calls.
+3. **Stateless interactions.** Each request is financially independent. No concept of a budget, an ongoing relationship, or accumulated trust.
+
+Agents don't work this way. They maintain ongoing relationships with services, execute against budgets, open streaming connections, and delegate sub-tasks. A payment protocol for agents must model payments as continuous state, not discrete events.
+
+## Payment flow
+
+1. **Client discovers pricing** — `GET /.well-known/amp.json` returns the server's rates, accepted tokens, and minimum deposit.
+2. **Client opens a channel** — one Solana transaction deposits SPL tokens into a PDA-owned vault.
+3. **Client makes requests** — every request includes `AMP-Channel`, `AMP-Seq`, and `AMP-Sig` headers. Zero on-chain transactions.
+4. **Server meters usage** — the server tracks consumption off-chain (per-call, per-second, per-byte).
+5. **Server settles periodically** — one Solana transaction nets all usage since the last settlement.
+6. **Client closes channel** — remaining balance is refunded. Channel PDA is closed, rent reclaimed.
+
+## Use cases
+
+- **LLM inference** — pay for completions through a persistent channel instead of signing every request.
+- **Streaming data** — continuous metering for real-time feeds, priced per-second.
+- **Multi-agent workflows** — delegate budget to sub-agents for autonomous task execution.
+- **Agent supply chains** — chain channels so Service A can pay Service B from the same upstream budget.
+
+## Official SDKs
+
+- **TypeScript** — [`@valeo/amp-server`](/sdk/typescript) (Express middleware, metering, auto-settlement) and [`@valeo/amp-client`](/sdk/typescript) (agent SDK, auto-discovery, `amp.fetch()`)
+
+## Next steps
+
+- [Quick Start — Add payments to your API](/quickstart/server)
+- [Protocol concepts — Channels, metering, settlement](/protocol)
+- [Full Specification on GitHub](https://github.com/valeo-cash/amp/blob/main/SPEC.md)

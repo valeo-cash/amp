@@ -1,0 +1,87 @@
+# Metering
+
+Off-chain usage tracking by the server.
+
+---
+
+Metering is how the server tracks what the client has consumed. All metering happens off-chain — no transactions during consumption. The accumulated usage is then settled periodically in a single on-chain transaction.
+
+## Metering modes
+
+| Mode | Unit | Description |
+|------|------|-------------|
+| `per-call` | Fixed per invocation | Each API call costs a fixed amount |
+| `per-second` | Per second of connection | For streaming or long-lived connections |
+| `per-byte` | Per byte transferred | For data-heavy endpoints |
+| `per-compute` | Per compute unit | For variable-cost operations (inference, rendering) |
+| `custom` | Server-defined | Server publishes a custom metering function |
+
+## How it works
+
+1. Client sends a request with `AMP-Channel`, `AMP-Seq`, `AMP-Sig` headers.
+2. Server validates credentials (channel exists, signature valid, seq monotonic).
+3. Server serves the request.
+4. Server increments the local metering counter.
+5. No on-chain transaction occurs.
+
+The server maintains a `ChannelUsage` record per channel:
+
+```typescript
+interface ChannelUsage {
+  callCount: number
+  bytesConsumed: number
+  secondsConsumed: number
+  totalAmount: number      // rate * usage
+  seqStart: number
+  seqEnd: number
+  periodStart: number      // unix timestamp
+}
+```
+
+## Metering proofs
+
+When the server settles, it produces a `MeteringProof`:
+
+```json
+{
+  "channel": "<channel_pda_base58>",
+  "amount": 4500000,
+  "callCount": 4500,
+  "periodStart": 1711234567,
+  "periodEnd": 1711238167,
+  "seqStart": 1001,
+  "seqEnd": 5500,
+  "serverSignature": "<ed25519_signature>"
+}
+```
+
+The signature covers: `SHA256(channel || amount || callCount || periodStart || periodEnd || seqStart || seqEnd)`.
+
+## Pricing configuration
+
+Servers declare pricing in their manifest:
+
+```json
+{
+  "pricing": {
+    "default": {
+      "mode": "per-call",
+      "rate": "1000",
+      "token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "minDeposit": "1000000",
+      "settleInterval": 3600
+    },
+    "routes": {
+      "/v1/inference": { "mode": "per-call", "rate": "10000" },
+      "/v1/stream": { "mode": "per-second", "rate": "1000" }
+    }
+  }
+}
+```
+
+All monetary values are in the token's smallest unit. USDC has 6 decimals: `"1000"` = $0.001.
+
+## Next steps
+
+- [Settlement →](/protocol/settlement)
+- [Accept per-call payments →](/guides/per-call)

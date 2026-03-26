@@ -1,0 +1,65 @@
+# Comparison: x402 vs MPP vs AMP
+
+An honest comparison of the three machine payment protocols.
+
+---
+
+## Protocol overview
+
+**x402** (Coinbase) — HTTP 402 with per-request payments on Base (EVM). Simple, stateless, one on-chain transaction per call.
+
+**MPP** (Tempo/Stripe) — extensible HTTP 402 framework with multiple payment methods (Tempo, Stripe, cards, Lightning, Solana). Supports sessions with off-chain vouchers. IETF specification.
+
+**AMP** (Valeo) — Solana-native persistent channels. Off-chain metering, on-chain net settlement. Supports delegation, chaining, and multiple transports.
+
+## Feature matrix
+
+| Feature | x402 | MPP | AMP |
+|---------|------|-----|-----|
+| Payment model | Per-request | Per-request + sessions | Persistent channels |
+| Runtime latency | Per-call | Per-call / near-zero (session) | Zero after open |
+| Transport | HTTP only | HTTP + MCP | HTTP + MCP + WS + gRPC |
+| Chain | Base (EVM) | Tempo, Solana, Lightning, cards | Solana native |
+| On-chain txns / 1K calls | 1,000 | 2 (session) | ~3 |
+| Streaming | No | SSE with vouchers | Native (any transport) |
+| Delegation | No | No | Native |
+| Credit support | No | No | Native (ACE-ready) |
+| On-chain composability | Limited (EVM) | Varies | Full Solana DeFi |
+| IETF standardization | No | Yes | No (open spec) |
+| Fiat support | No | Yes (Stripe, cards) | No (crypto-native) |
+| Service discovery | No | No | On-chain registry |
+| Multi-channel netting | No | No | Stratum |
+| Reputation | No | No | On-chain scoring |
+
+## Cost analysis (1,000 calls at $0.001/call)
+
+| Protocol | On-chain txns | Gas cost |
+|----------|---------------|----------|
+| x402 (Base) | 1,000 | ~$1.00 |
+| MPP session (Tempo) | 2 | ~2x Tempo tx cost |
+| AMP (Solana) | ~3 | ~$0.00075 |
+
+## When to use what
+
+### x402 wins when:
+- You want the simplest possible integration
+- You're already on Base/EVM
+- You only need one-off per-request payments
+
+### MPP wins when:
+- You need multi-method support (crypto + cards + fiat)
+- You want IETF-grade standardization
+- You need Python or Rust SDKs today
+
+### AMP wins when:
+- You're building on Solana and want native composability
+- You need high-volume usage with minimal on-chain cost
+- You need delegation (agent-to-agent budget forwarding)
+- You need transport bindings beyond HTTP (MCP, gRPC, WebSocket)
+- You want on-chain channel state that other programs can read and compose with
+
+## The real differentiator
+
+MPP is a **payment framework** — flexible, multi-method, payment-rail agnostic. AMP is a **financial state protocol** — Solana-native, composable, persistent. They serve different architectural needs.
+
+[Full comparison on GitHub](https://github.com/valeo-cash/amp/blob/main/COMPARISON.md)

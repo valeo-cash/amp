@@ -1,0 +1,54 @@
+# Delegation
+
+Assign consumption rights from a funder to a sub-agent.
+
+---
+
+Delegation lets a funder assign a delegate pubkey to their channel. The delegate can consume services against the channel up to a specified limit. This enables agent-to-agent budget forwarding without the delegate needing its own capital.
+
+## How it works
+
+1. Agent A opens a channel with $10
+2. Agent A calls `set_delegate` with Agent B's pubkey and a $3 limit
+3. Agent B signs requests with its own keypair, referencing Agent A's channel
+4. The server verifies Agent B's signature against the `delegate` field on-chain
+5. Usage is metered normally; the delegate limit is tracked separately
+
+## Setting a delegate
+
+```typescript
+await program.methods
+  .setDelegate(agentBPubkey, new BN(3_000_000))  // $3 limit
+  .accounts({
+    funder: agentA.publicKey,
+    channelState: channelPDA,
+  })
+  .signers([agentA])
+  .rpc()
+```
+
+## On-chain state
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `delegate` | `Option<Pubkey>` | Delegate's public key |
+| `delegate_limit` | `u64` | Maximum amount delegate can consume |
+| `delegate_consumed` | `u64` | Amount consumed so far |
+
+## Constraints
+
+- Only the funder can set or change the delegate
+- The delegate limit cannot exceed the current channel balance
+- Setting a new delegate resets `delegate_consumed` to zero
+- The server SDK validates both funder and delegate signatures automatically
+
+## Use cases
+
+- **Multi-agent workflows** — a planning agent delegates budget to task-specific sub-agents
+- **Team budgets** — one wallet funds a channel, team members consume independently
+- **Tiered access** — delegate different limits to different agents based on their role
+
+## Next steps
+
+- [Accept delegated payments guide →](/guides/delegation)
+- [Channel chaining →](/guides/chaining)

@@ -1,0 +1,65 @@
+# On-Chain Reputation
+
+Deterministic trust scores derived from channel history.
+
+---
+
+:::info
+**Status:** Specification complete, program pending deployment.
+:::
+
+AMP includes a reputation system derived from channel history. Scores are computed on-chain from verifiable settlement data — no external oracle, no subjective rating.
+
+## Score calculation
+
+```
+base_score = (channels_completed / channels_opened) * 5000
+volume_bonus = min(log2(total_volume / 1_000_000) * 500, 2500)
+streak_bonus = min(current_streak * 50, 1500)
+dispute_penalty = dispute_count * 500
+
+score = clamp(base_score + volume_bonus + streak_bonus - dispute_penalty, 0, 10000)
+```
+
+Score range: **0 to 10,000**. Higher is better.
+
+## ReputationAccount
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `entity` | Pubkey | Agent or service being scored |
+| `total_channels_opened` | u64 | Lifetime channels |
+| `total_channels_completed` | u64 | Clean closes |
+| `total_volume` | u64 | Lifetime settlement volume |
+| `total_settlements` | u64 | Successful settlements |
+| `dispute_count` | u64 | Disputed closes |
+| `current_streak` | u64 | Consecutive clean settlements |
+| `score` | u64 | Computed score (0-10000) |
+
+## Reputation-based pricing
+
+Services can offer tiered pricing based on agent reputation:
+
+```json
+{
+  "pricing": {
+    "default": { "mode": "per-call", "rate": "10000" },
+    "reputation_tiers": [
+      { "min_score": 5000, "rate": "8000" },
+      { "min_score": 8000, "rate": "5000" },
+      { "min_score": 9500, "rate": "3000" }
+    ]
+  }
+}
+```
+
+Higher reputation = lower prices. Incentivizes good behavior.
+
+## How scores update
+
+| Event | Effect |
+|-------|--------|
+| `open_channel` | Increment `total_channels_opened` |
+| `settle` | Increment `total_settlements`, extend streak |
+| `close_channel` (clean) | Increment `total_channels_completed` |
+| `close_channel` (dispute) | Increment `dispute_count`, reset streak |

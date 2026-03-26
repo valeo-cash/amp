@@ -1,0 +1,58 @@
+# Multi-Channel Netting (Stratum)
+
+Batch settlements across all channels in one cycle.
+
+---
+
+:::info
+**Status:** Specification complete, integration pending.
+:::
+
+AMP channels can opt into multilateral netting through Valeo Stratum. Instead of each channel settling independently, Stratum aggregates all settlements in a netting cycle and produces the minimum set of on-chain transfers.
+
+## Why netting matters
+
+Without netting (3 channels, 3 transactions):
+- Agent A owes Service B: $5.00
+- Agent A owes Service C: $3.00
+- Service C owes Agent A: $2.00
+
+With netting (2 transactions):
+- Agent A owes Service B: $5.00
+- Agent A owes Service C: $1.00 ($3 - $2)
+
+At scale (100 agents, 100 services), netting reduces on-chain transactions by 60-80%.
+
+## Enabling netting
+
+When opening a channel, set `stratum_enabled`:
+
+```typescript
+const channel = await amp.openChannel({
+  to: serviceB.pubkey,
+  deposit: 10.00,
+  stratumEnabled: true,
+  stratumCycle: 3600,
+})
+```
+
+## How it works
+
+1. Metering proofs are submitted to the Stratum netting engine (off-chain)
+2. At each cycle, Stratum calculates net obligations across all opted-in channels
+3. Stratum submits the minimum set of `settle` instructions
+4. All channels are updated in one cycle
+
+## Channel state fields
+
+| Field | Description |
+|-------|-------------|
+| `stratum_enabled` | Whether channel opts into netting |
+| `stratum_cycle` | Netting interval in seconds |
+| `stratum_authority` | Stratum engine pubkey (authorized to call settle) |
+
+The `stratum_authority` can call `settle` on behalf of the recipient, but cannot close channels or modify any other state.
+
+## Fallback
+
+If Stratum is unavailable, channels fall back to normal per-channel settlement by the recipient. Netting is an optimization, not a requirement.

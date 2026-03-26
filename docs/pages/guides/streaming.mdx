@@ -1,0 +1,65 @@
+# Accept Streaming Payments
+
+Charge for time-based services with per-second metering.
+
+---
+
+For streaming connections, long-running tasks, or any service where cost scales with time, use `per-second` metering. The server accumulates usage continuously and settles the total at each interval.
+
+## Server setup
+
+```typescript
+import { AMP } from "@valeo/amp-server"
+
+const amp = new AMP({
+  wallet: serverKeypair,
+  connection,
+  pricing: {
+    mode: "per-second",
+    rate: "1000",  // $0.001 per second
+    token: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    minDeposit: "5000000",
+    settleInterval: 3600,
+  },
+})
+
+app.get("/v1/stream", amp.middleware(), (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream")
+  res.setHeader("Connection", "keep-alive")
+
+  const interval = setInterval(() => {
+    res.write(`data: ${JSON.stringify({ tick: Date.now() })}\n\n`)
+  }, 1000)
+
+  req.on("close", () => clearInterval(interval))
+})
+```
+
+## Metering modes
+
+| Mode | Unit | Use case |
+|------|------|----------|
+| `per-call` | Fixed per request | Standard APIs |
+| `per-second` | Per second of connection | Streaming, WebSocket |
+| `per-byte` | Per byte transferred | Data-heavy endpoints |
+| `per-compute` | Per compute unit | Variable-cost operations |
+
+## Per-byte example
+
+```typescript
+const amp = new AMP({
+  // ...
+  pricing: {
+    mode: "per-byte",
+    rate: "1",  // $0.000001 per byte
+    token: "...",
+    minDeposit: "1000000",
+    settleInterval: 3600,
+  },
+})
+```
+
+## Next steps
+
+- [Metering protocol details →](/protocol/metering)
+- [Transport bindings for WebSocket →](/protocol/transports/websocket)

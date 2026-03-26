@@ -1,0 +1,48 @@
+# Program
+
+The amp-channel Solana program.
+
+---
+
+## Deployment
+
+| Field | Value |
+|-------|-------|
+| Program ID | [`2KQCaQ9j8YtewZ4QjmDfnsVANZXLBcPSYFhAj2eUNaPP`](https://explorer.solana.com/address/2KQCaQ9j8YtewZ4QjmDfnsVANZXLBcPSYFhAj2eUNaPP?cluster=devnet) |
+| Network | Solana Devnet |
+| Framework | Anchor 0.30.1 |
+| Owner | `BPFLoaderUpgradeab1e11111111111111111111111` |
+| Source | [github.com/valeo-cash/amp/programs/amp-channel](https://github.com/valeo-cash/amp/tree/main/programs/amp-channel) |
+
+## Instructions
+
+The program implements 6 instructions:
+
+| Instruction | Description |
+|-------------|-------------|
+| `open_channel` | Create a new channel and deposit tokens |
+| `top_up` | Add funds to an existing channel |
+| `settle` | Transfer owed funds to the recipient |
+| `close_channel` | Final settlement + refund + close accounts |
+| `set_delegate` | Assign consumption rights to a delegate |
+| `chain_channel` | Create a downstream channel from an upstream vault |
+
+[Full instruction reference →](/on-chain/instructions)
+
+## Accounts
+
+| Account | Description |
+|---------|-------------|
+| ChannelState (PDA) | Persistent financial state for a channel |
+| Vault (PDA) | SPL token account holding deposited funds |
+
+[Channel state layout →](/on-chain/channel-state)
+
+## Future programs
+
+The AMP ecosystem spec defines two additional programs (not yet deployed):
+
+| Program | Description | Status |
+|---------|-------------|--------|
+| `amp-registry` | On-chain service directory | Spec complete |
+| `amp-reputation` | Reputation scoring from channel history | Spec complete |

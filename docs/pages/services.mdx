@@ -1,0 +1,35 @@
+# Services
+
+AMP-enabled services on Solana.
+
+---
+
+AMP is deployed to Solana devnet. Production services are coming soon.
+
+The AMP protocol includes an [on-chain Service Registry](/ecosystem/registry) that will let agents discover services by category, price, and reputation. Once live, services will be listed here automatically.
+
+## Be the first to integrate
+
+Adding AMP payments to your API takes a few lines of code:
+
+```typescript
+import { AMP } from "@valeo/amp-server"
+
+app.use(AMP.middleware({ rate: "0.001/call" }))
+```
+
+[Add payments to your API →](/quickstart/server)
+
+## Service categories
+
+The registry supports these categories:
+
+| Category | Description |
+|----------|-------------|
+| Inference | LLM, image generation, embeddings |
+| Data | Search, scraping, enrichment |
+| Compute | GPU, serverless, batch processing |
+| Storage | IPFS, Arweave, S3-compatible |
+| Communication | Email, SMS, notifications |
+| Financial | Pricing, market data, trading |
+| Identity | KYC, verification, attestation |

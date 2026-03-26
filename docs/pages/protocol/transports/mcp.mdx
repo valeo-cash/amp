@@ -1,0 +1,112 @@
+# MCP and JSON-RPC Transport
+
+AMP credentials in MCP tool calls via JSON-RPC 2.0.
+
+---
+
+MCP (Model Context Protocol) is the primary transport for AI agent tool calls. AMP supports MCP as a first-class transport with per-tool pricing.
+
+## Discovery
+
+An AMP-enabled MCP server advertises pricing via a dedicated `amp/pricing` method:
+
+```json
+// Request
+{ "jsonrpc": "2.0", "method": "amp/pricing", "id": 1 }
+
+// Response
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "amp_version": "1.0",
+    "recipient": "<server_pubkey>",
+    "program_id": "2KQCaQ9j8YtewZ4QjmDfnsVANZXLBcPSYFhAj2eUNaPP",
+    "network": "solana:mainnet-beta",
+    "pricing": {
+      "tools": {
+        "generate_image": { "mode": "per-call", "rate": "50000" },
+        "search_web": { "mode": "per-call", "rate": "5000" }
+      }
+    }
+  }
+}
+```
+
+Each MCP tool can have its own rate and metering mode.
+
+## Channel credentials in tool calls
+
+Include AMP credentials in the `_amp` field of `params`:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "generate_image",
+    "arguments": { "prompt": "a cat in space" },
+    "_amp": {
+      "channel": "<channel_pda_base58>",
+      "seq": 42,
+      "sig": "<ed25519_sig_base58>"
+    }
+  },
+  "id": 2
+}
+```
+
+The `_amp` field is a reserved namespace. MCP servers that don't support AMP ignore fields prefixed with `_`.
+
+## Payment required response
+
+If a tool call lacks credentials:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "error": {
+    "code": -32602,
+    "message": "AMP_NO_CHANNEL",
+    "data": {
+      "amp_pricing": {
+        "mode": "per-call",
+        "rate": "50000",
+        "recipient": "<server_pubkey>"
+      }
+    }
+  }
+}
+```
+
+## Server SDK
+
+```typescript
+import { AMPMcpServer } from "@valeo/amp-server"
+
+const server = new AMPMcpServer({
+  wallet: serverKeypair,
+  connection,
+  tools: {
+    generate_image: {
+      description: "Generate an image",
+      pricing: { mode: "per-call", rate: "50000", token: "...", minDeposit: "1000000", settleInterval: 3600 },
+      inputSchema: { type: "object", properties: { prompt: { type: "string" } } },
+      handler: async (args, amp) => ({ url: "..." }),
+    },
+  },
+})
+```
+
+## Client SDK
+
+```typescript
+import { AMPMcpClient } from "@valeo/amp-client"
+
+const client = new AMPMcpClient({ wallet, connection, budget: 5.0 })
+await client.connect("http://localhost:3000/mcp")
+
+const result = await client.callTool("generate_image", { prompt: "cat" })
+await client.close()
+```

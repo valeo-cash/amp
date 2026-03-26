@@ -1,0 +1,60 @@
+# Service Registry
+
+On-chain directory for discovering AMP-enabled services.
+
+---
+
+:::info
+**Status:** Specification complete, program pending deployment.
+:::
+
+The AMP Service Registry is a Solana program that maintains a directory of AMP-enabled services. Any service provider can register. Agents query the registry to discover services by category, price, and reputation.
+
+## How it works
+
+1. Service provider calls `register_service` with their endpoint, pricing, and description
+2. The registry creates a `ServiceEntry` PDA for the provider
+3. Agents query the registry using `getProgramAccounts` with filters
+4. When channels are opened/settled, the registry statistics update via CPI
+
+## ServiceEntry account
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `provider` | Pubkey | Service provider's pubkey |
+| `endpoint` | String | Service URL or MCP connection string |
+| `category` | u8 | Service category (0-7) |
+| `rate` | u64 | Cost per unit |
+| `token` | Pubkey | Accepted SPL token mint |
+| `min_deposit` | u64 | Minimum channel deposit |
+| `reputation_score` | u64 | From on-chain reputation system |
+| `total_channels` | u64 | Lifetime channels opened |
+| `total_settled` | u64 | Lifetime volume settled |
+| `active_channels` | u32 | Currently active channels |
+| `active` | bool | Whether service is available |
+
+## Categories
+
+| Value | Category |
+|-------|----------|
+| 0 | Inference (LLM, image gen, embeddings) |
+| 1 | Data (search, scraping, enrichment) |
+| 2 | Compute (GPU, serverless, batch) |
+| 3 | Storage (IPFS, Arweave, S3) |
+| 4 | Communication (email, SMS) |
+| 5 | Financial (pricing, market data) |
+| 6 | Identity (KYC, verification) |
+| 7 | Other |
+
+## Querying (future SDK)
+
+```typescript
+import { AMPRegistry } from "@valeo/amp-client"
+
+const services = await registry.search({
+  category: "inference",
+  maxRate: "10000",
+  minReputation: 5000,
+  sortBy: "reputation",
+})
+```

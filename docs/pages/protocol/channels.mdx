@@ -1,0 +1,71 @@
+# Channels
+
+A persistent financial state object between two parties on Solana.
+
+---
+
+A channel is the core primitive of AMP. It replaces per-request payments with a persistent financial relationship. One funder deposits tokens, consumes services freely, and the recipient settles periodically.
+
+## Lifecycle
+
+```
+Open → Active → Settled (repeating) → Closed
+```
+
+1. **Open** — the funder submits `open_channel` on-chain. Tokens transfer from the funder's wallet to a PDA-owned vault.
+2. **Active** — the funder makes requests with channel credentials. The server meters usage off-chain.
+3. **Settled** — the recipient submits `settle` on-chain. Tokens transfer from the vault to the recipient. Channel returns to Active.
+4. **Closed** — either party submits `close_channel`. Final settlement to the recipient, remaining balance refunded to funder.
+
+## Channel identity
+
+A channel is a PDA derived from:
+
+```
+Seeds: [b"amp-channel", funder_pubkey, recipient_pubkey, nonce_le_bytes]
+```
+
+The nonce allows multiple channels between the same funder-recipient pair.
+
+## Opening a channel
+
+Before opening, the client discovers the server's pricing via `/.well-known/amp.json` or by parsing a `402` response.
+
+The client then derives the PDA, creates the vault, and deposits tokens:
+
+```typescript
+const [channelPDA] = PublicKey.findProgramAddressSync(
+  [Buffer.from("amp-channel"), funder.toBuffer(), recipient.toBuffer(), nonceBuf],
+  programId
+)
+
+await program.methods
+  .openChannel(deposit, rateLimit, settleInterval, nonce)
+  .accounts({ funder, recipient, mint, channelState: channelPDA, vault: vaultPDA, funderTokenAccount, systemProgram, tokenProgram })
+  .rpc()
+```
+
+## Request credentials
+
+After opening, every request includes three headers:
+
+| Header | Value | Purpose |
+|--------|-------|---------|
+| `AMP-Channel` | Channel PDA in base58 | Identifies the channel |
+| `AMP-Seq` | Monotonically increasing integer | Replay prevention |
+| `AMP-Sig` | Ed25519 signature of seq (LE u64) | Authentication |
+
+The signature proves the request comes from the channel's funder (or delegate).
+
+## Security
+
+- **PDA ownership** — the vault is owned by the channel PDA. Only the AMP program can move funds.
+- **Replay prevention** — the server rejects any sequence number less than or equal to the last seen.
+- **Unilateral close** — the funder can close the channel at any time, recovering unspent funds. Maximum loss is one unsettled period.
+- **Sybil resistance** — opening a channel requires a deposit and rent, making spam costly.
+
+## Next steps
+
+- [Metering →](/protocol/metering)
+- [Settlement →](/protocol/settlement)
+- [On-chain channel state →](/on-chain/channel-state)

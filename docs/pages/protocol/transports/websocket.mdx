@@ -1,0 +1,71 @@
+# WebSocket Transport
+
+AMP credentials over WebSocket connections.
+
+---
+
+For streaming, real-time data, and long-lived connections, AMP defines a WebSocket binding.
+
+## Discovery
+
+The server sends pricing as the first text frame after the WebSocket handshake, using the same JSON schema as `/.well-known/amp.json`.
+
+## Channel binding
+
+The client sends a channel binding message as the first text frame:
+
+```json
+{
+  "amp_channel": "<channel_pda_base58>",
+  "amp_seq": 0,
+  "amp_sig": "<signature_base58>"
+}
+```
+
+The server acknowledges:
+
+```json
+{
+  "amp_status": "active",
+  "amp_balance": "5000000"
+}
+```
+
+## Subsequent messages
+
+### Text mode
+
+Wrap each message with AMP fields:
+
+```json
+{
+  "amp_seq": 42,
+  "amp_sig": "<signature_base58>",
+  "payload": { "query": "stream data" }
+}
+```
+
+### Binary mode
+
+For high-frequency streams, use a binary prefix:
+
+```
+[2 bytes: amp_seq as u16 LE]
+[64 bytes: amp_sig as raw Ed25519 signature]
+[remaining bytes: application payload]
+```
+
+Binary mode avoids JSON parsing overhead for each frame.
+
+## Metering
+
+The server meters WebSocket connections using `per-second` mode. The server tracks connection duration and settles at each interval:
+
+```
+amount = seconds_connected * rate
+```
+
+## Next steps
+
+- [Accept streaming payments →](/guides/streaming)
+- [HTTP transport →](/protocol/transports/http)

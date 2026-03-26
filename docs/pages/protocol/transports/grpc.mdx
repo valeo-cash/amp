@@ -1,0 +1,41 @@
+# gRPC Transport
+
+AMP credentials as gRPC metadata.
+
+---
+
+AMP credentials are carried as gRPC metadata keys, supporting both unary and streaming RPCs.
+
+## Discovery
+
+The server exposes an AMP discovery RPC method, or the client calls any method and receives a gRPC status `FAILED_PRECONDITION` with AMP pricing in the error details.
+
+## Request credentials
+
+AMP metadata keys on every RPC call:
+
+```
+amp-channel: <channel_pda_base58>
+amp-seq: <sequence_number>
+amp-sig: <signature_base58>
+```
+
+## Streaming RPCs
+
+For server-streaming or bidirectional-streaming RPCs, the client sends AMP metadata in the initial request metadata. The server meters each response message sent.
+
+## Example (Node.js)
+
+```typescript
+const metadata = new grpc.Metadata()
+metadata.set("amp-channel", channelPDA.toBase58())
+metadata.set("amp-seq", seq.toString())
+metadata.set("amp-sig", sig)
+
+const response = await client.getData({ query: "test" }, metadata)
+```
+
+## Next steps
+
+- [HTTP transport →](/protocol/transports/http)
+- [MCP transport →](/protocol/transports/mcp)

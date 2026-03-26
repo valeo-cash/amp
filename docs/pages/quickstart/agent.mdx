@@ -1,0 +1,84 @@
+# Use with Agents
+
+Let your agent pay for services autonomously through persistent channels.
+
+---
+
+## Install
+
+```bash
+npm install @valeo/amp-client @solana/web3.js
+```
+
+## Basic usage
+
+`AMPClient.fetch()` is a drop-in replacement for native `fetch()`. It handles discovery, channel opening, and credential signing automatically.
+
+```typescript
+import { AMPClient } from "@valeo/amp-client"
+import { Keypair, Connection } from "@solana/web3.js"
+
+const amp = new AMPClient({
+  wallet: agentKeypair,
+  connection: new Connection("https://api.mainnet-beta.solana.com"),
+  budget: 10.00,    // $10 USDC total budget
+  token: "USDC",
+})
+
+// First call: discovers pricing, opens channel, then fetches
+const res = await amp.fetch("https://api.example.com/v1/data", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ query: "What is AMP?" }),
+})
+
+console.log(await res.json())
+console.log("Balance:", res.ampBalance)  // remaining channel balance
+
+// Subsequent calls reuse the open channel — zero on-chain cost
+for (let i = 0; i < 100; i++) {
+  await amp.fetch("https://api.example.com/v1/data")
+}
+
+// Close all channels when done — remaining budget refunded
+await amp.closeAll()
+```
+
+## What happens under the hood
+
+1. **Discovery** — on first call to a new host, the client fetches `/.well-known/amp.json` to learn pricing and the server's pubkey.
+2. **Channel open** — the client submits one Solana transaction to open a channel with a deposit.
+3. **Request signing** — every request includes three headers:
+   - `AMP-Channel` — the channel PDA address
+   - `AMP-Seq` — a monotonically increasing sequence number
+   - `AMP-Sig` — Ed25519 signature of the sequence number
+4. **Retry** — if a 402 is returned (pricing changed), the client re-discovers and opens a new channel automatically.
+5. **Close** — `closeAll()` closes every open channel and refunds remaining balances.
+
+## Explicit channel management
+
+If you want more control, open and close channels directly:
+
+```typescript
+const channel = await amp.openChannel({
+  recipient: serverPubkey,
+  deposit: 5.00,
+  settleInterval: 3600,
+})
+
+await amp.topUp(channel, 2.00)   // add more funds
+await amp.close(channel)          // close and refund
+```
+
+## Check remaining budget
+
+```typescript
+const remaining = amp.getRemainingBudget()  // in human units
+console.log(`$${remaining} USDC remaining`)
+```
+
+## Next steps
+
+- [Accept delegated payments →](/guides/delegation)
+- [Channel chaining →](/guides/chaining)
+- [Protocol concepts →](/protocol)
