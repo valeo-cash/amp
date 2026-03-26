@@ -1,4 +1,4 @@
 {
-  "buildCommand": "npx vocs build && cp -f site/index.html dist/index.html",
+  "buildCommand": "npx vocs build && ls -la && ls -la docs/ && mkdir -p dist && cp -f site/index.html dist/index.html",
   "outputDirectory": "dist"
 }
