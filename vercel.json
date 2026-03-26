@@ -1,4 +1,4 @@
 {
-  "buildCommand": "npm install && npx vocs build && find . -name 'overview' -type d -not -path './node_modules/*' -not -path './.anchor/*' 2>/dev/null && find . -name 'index.html' -not -path './node_modules/*' -not -path './.anchor/*' -not -path './.git/*' 2>/dev/null | head -10 && echo DONE",
-  "outputDirectory": "docs/dist"
+  "buildCommand": "npx vocs build && find . -name 'index.html' -maxdepth 4 -not -path './node_modules/*' | head -10",
+  "outputDirectory": "dist"
 }
