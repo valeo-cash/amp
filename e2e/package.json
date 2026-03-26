@@ -1,0 +1,25 @@
+{
+  "name": "amp-e2e",
+  "version": "0.2.0",
+  "private": true,
+  "description": "AMP end-to-end tests on Solana devnet",
+  "scripts": {
+    "setup": "npx ts-node src/setup.ts",
+    "test:lifecycle": "npx ts-node src/e2e-full-lifecycle.ts",
+    "test:delegation": "npx ts-node src/e2e-delegation.ts",
+    "test:chain": "npx ts-node src/e2e-chain.ts",
+    "test:all": "npm run setup && npm run test:lifecycle"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
+    "@solana/web3.js": "^1.95.0",
+    "@solana/spl-token": "^0.4.0",
+    "tweetnacl": "^1.0.3",
+    "bs58": "^5.0.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.0",
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0"
+  }
+}

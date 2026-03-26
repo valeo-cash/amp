@@ -1,7 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
 
 export const AMP_PROGRAM_ID = new PublicKey(
-  "AMPchanneLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  "2KQCaQ9j8YtewZ4QjmDfnsVANZXLBcPSYFhAj2eUNaPP"
 );
 
 export const CHANNEL_SEED = Buffer.from("amp-channel");
