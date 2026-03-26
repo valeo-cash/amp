@@ -1,5 +1,4 @@
 {
-  "buildCommand": "npm install && npx vocs build && cp -f site/index.html docs/dist/index.html",
-  "outputDirectory": "docs/dist",
-  "installCommand": "npm install"
+  "buildCommand": "npm install && npx vocs build && find . -name 'overview' -type d -not -path './node_modules/*' -not -path './.anchor/*' 2>/dev/null && find . -name 'index.html' -not -path './node_modules/*' -not -path './.anchor/*' -not -path './.git/*' 2>/dev/null | head -10 && echo DONE",
+  "outputDirectory": "docs/dist"
 }
