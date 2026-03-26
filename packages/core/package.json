@@ -1,5 +1,5 @@
 {
-  "name": "@valeo/amp-core",
+  "name": "@ampvaleo/amp-core",
   "version": "0.2.0",
   "description": "AMP Protocol - Shared types, PDA derivation, and utilities",
   "main": "dist/index.js",

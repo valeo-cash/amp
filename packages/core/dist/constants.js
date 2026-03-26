@@ -1,8 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AMP_VERSION = exports.CHANNEL_STATE_SIZE = exports.MAX_SETTLE_INTERVAL = exports.MIN_SETTLE_INTERVAL = exports.MAX_CHAIN_DEPTH = exports.USDC_DECIMALS = exports.USDC_MINT_DEVNET = exports.USDC_MINT = exports.VAULT_SEED = exports.CHANNEL_SEED = exports.AMP_PROGRAM_ID = void 0;
+exports.AMP_VERSION = exports.CHANNEL_STATE_SIZE = exports.MAX_SETTLE_INTERVAL = exports.MIN_SETTLE_INTERVAL = exports.MAX_CHAIN_DEPTH = exports.USDC_DECIMALS = exports.USDC_MINT_DEVNET = exports.USDC_MINT = exports.VAULT_SEED = exports.CHANNEL_SEED = exports.AMP_PROGRAM_ID_MAINNET = exports.AMP_PROGRAM_ID_DEVNET = exports.AMP_PROGRAM_ID = void 0;
 const web3_js_1 = require("@solana/web3.js");
-exports.AMP_PROGRAM_ID = new web3_js_1.PublicKey("2KQCaQ9j8YtewZ4QjmDfnsVANZXLBcPSYFhAj2eUNaPP");
+exports.AMP_PROGRAM_ID = new web3_js_1.PublicKey("2d1B2PmumwYWuR82AbXAARTL1nrn8N7Vu9bLXTXUDmVA");
+exports.AMP_PROGRAM_ID_DEVNET = new web3_js_1.PublicKey("2KQCaQ9j8YtewZ4QjmDfnsVANZXLBcPSYFhAj2eUNaPP");
+exports.AMP_PROGRAM_ID_MAINNET = new web3_js_1.PublicKey("2d1B2PmumwYWuR82AbXAARTL1nrn8N7Vu9bLXTXUDmVA");
 exports.CHANNEL_SEED = Buffer.from("amp-channel");
 exports.VAULT_SEED = Buffer.from("amp-vault");
 exports.USDC_MINT = new web3_js_1.PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");

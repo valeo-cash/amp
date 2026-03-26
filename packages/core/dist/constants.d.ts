@@ -1,5 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
 export declare const AMP_PROGRAM_ID: PublicKey;
+export declare const AMP_PROGRAM_ID_DEVNET: PublicKey;
+export declare const AMP_PROGRAM_ID_MAINNET: PublicKey;
 export declare const CHANNEL_SEED: Buffer;
 export declare const VAULT_SEED: Buffer;
 export declare const USDC_MINT: PublicKey;
