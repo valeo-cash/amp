@@ -13,8 +13,8 @@
     "docs:dev": "vocs dev",
     "docs:build": "vocs build",
     "docs:preview": "vocs preview",
-    "site:build": "npx vocs build && cp -f site/index.html docs/dist/index.html",
-    "site:preview": "npm run site:build && npx serve docs/dist"
+    "site:build": "bash build.sh",
+    "site:preview": "bash build.sh && npx serve dist"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",

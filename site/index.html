@@ -10,319 +10,320 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--g:#00DE91;--bg:#000;--t:#fff;--m:rgba(255,255,255,.5);--tb:#111;--tb2:#222;--amber:#F5A623}
+    body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 
-    :root {
-      --green: #00DE91;
-      --bg: #000000;
-      --text: #FFFFFF;
-      --muted: rgba(255,255,255,0.5);
-      --terminal-bg: #111111;
-      --terminal-border: #222222;
-    }
+    nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 48px;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.1)}
+    .nl{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;color:var(--t);text-decoration:none;letter-spacing:-.5px}
+    .nr{display:flex;gap:32px;align-items:center}
+    .nr a{font-size:14px;font-weight:500;color:var(--m);text-decoration:none;transition:color .15s}
+    .nr a:hover{color:var(--t)}
 
-    body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
-    }
+    .hero{max-width:1200px;margin:0 auto;padding:100px 48px 80px;display:grid;grid-template-columns:1.2fr 1fr;gap:80px;align-items:center}
+    .ht{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(48px,7vw,88px);line-height:.95;letter-spacing:-3px;color:var(--t)}
+    .hr{max-width:400px}
+    .hd{font-size:17px;line-height:1.65;color:var(--m);margin-bottom:36px}
+    .hb{display:flex;gap:12px;flex-wrap:wrap}
+    .b{display:inline-flex;align-items:center;padding:12px 24px;font-size:14px;font-weight:500;font-family:'Inter',sans-serif;border-radius:8px;text-decoration:none;transition:all .15s;cursor:pointer}
+    .bp{background:#fff;color:#000;border:1px solid #fff}.bp:hover{background:#e0e0e0}
+    .bs{background:transparent;color:var(--t);border:1px solid rgba(255,255,255,.3)}.bs:hover{border-color:var(--t)}
 
-    /* ── Nav ────────────────────────────────── */
-    nav {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 48px;
-      background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    .nav-logo {
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700;
-      font-size: 20px;
-      color: var(--text);
-      text-decoration: none;
-      letter-spacing: -0.5px;
-    }
-    .nav-links { display: flex; gap: 32px; align-items: center; }
-    .nav-links a {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--muted);
-      text-decoration: none;
-      transition: color 0.15s;
-    }
-    .nav-links a:hover { color: var(--text); }
+    .ts{max-width:1200px;margin:0 auto 80px;padding:0 48px}
+    .tc{background:var(--tb);border:1px solid var(--tb2);border-radius:12px;overflow:hidden}
+    .th{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--tb2)}
+    .td{display:flex;gap:7px}.td span{width:12px;height:12px;border-radius:50%;background:#555}
+    .tu{font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(255,255,255,.35)}
+    .tr{font-size:16px;color:rgba(255,255,255,.35);background:none;border:none;cursor:pointer;transition:color .15s;padding:4px}.tr:hover{color:var(--t)}
 
-    /* ── Hero ───────────────────────────────── */
-    .hero {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 100px 48px 80px;
-      display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      gap: 80px;
-      align-items: center;
-    }
-    .hero-title {
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700;
-      font-size: clamp(48px, 7vw, 88px);
-      line-height: 0.95;
-      letter-spacing: -3px;
-      color: var(--text);
-    }
-    .hero-right { max-width: 400px; }
-    .hero-desc {
-      font-size: 17px;
-      line-height: 1.65;
-      color: var(--muted);
-      margin-bottom: 36px;
-    }
-    .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      padding: 12px 24px;
-      font-size: 14px;
-      font-weight: 500;
-      font-family: 'Inter', sans-serif;
-      border-radius: 8px;
-      text-decoration: none;
-      transition: all 0.15s;
-      cursor: pointer;
-    }
-    .btn-primary {
-      background: #FFFFFF;
-      color: #000000;
-      border: 1px solid #FFFFFF;
-    }
-    .btn-primary:hover { background: #e0e0e0; }
-    .btn-secondary {
-      background: transparent;
-      color: var(--text);
-      border: 1px solid rgba(255,255,255,0.3);
-    }
-    .btn-secondary:hover { border-color: var(--text); }
+    #term{padding:24px 28px 20px;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.7;color:rgba(255,255,255,.85);min-height:440px;overflow-y:auto;white-space:pre-wrap;outline:none}
+    .ok{color:var(--g)}.dm{color:rgba(255,255,255,.35)}.cm{color:var(--g);font-weight:500}.am{color:var(--amber)}
+    .mi{cursor:pointer;padding:2px 0;transition:opacity .1s}.mi:hover{opacity:.9}
+    .mi-sel{color:var(--g)}.mi-dim{color:rgba(255,255,255,.35)}
+    .pbar{display:inline}
 
-    /* ── Terminal ───────────────────────────── */
-    .terminal-section {
-      max-width: 1200px;
-      margin: 0 auto 80px;
-      padding: 0 48px;
-    }
-    .terminal-card {
-      background: var(--terminal-bg);
-      border: 1px solid var(--terminal-border);
-      border-radius: 16px;
-      overflow: hidden;
-    }
-    .terminal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 20px;
-      border-bottom: 1px solid var(--terminal-border);
-    }
-    .terminal-dots { display: flex; gap: 7px; }
-    .terminal-dots span {
-      width: 12px; height: 12px;
-      border-radius: 50%;
-    }
-    .terminal-dots span:nth-child(1) { background: #FF5F57; }
-    .terminal-dots span:nth-child(2) { background: #FEBC2E; }
-    .terminal-dots span:nth-child(3) { background: #28C840; }
-    .terminal-url {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      color: rgba(255,255,255,0.35);
-    }
-    .terminal-body {
-      padding: 24px 28px 20px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      line-height: 1.7;
-      color: rgba(255,255,255,0.7);
-      min-height: 420px;
-      overflow-y: auto;
-      position: relative;
-    }
-    .terminal-body .cmd { color: #FFFFFF; font-weight: 500; }
-    .terminal-body .green { color: var(--green); }
-    .terminal-body .dim { color: rgba(255,255,255,0.35); }
-    .terminal-body .line { opacity: 0; animation: fadeIn 0.15s forwards; }
-    @keyframes fadeIn { to { opacity: 1; } }
+    .tf{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--tb2)}
+    .tb{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,.2);text-transform:uppercase}
+    .thi{font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(255,255,255,.3)}
 
-    .terminal-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 20px;
-      border-top: 1px solid var(--terminal-border);
-    }
-    .terminal-footer-brand {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      color: rgba(255,255,255,0.25);
-      text-transform: uppercase;
-    }
-    .restart-btn {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      color: rgba(255,255,255,0.4);
-      background: none;
-      border: 1px solid var(--terminal-border);
-      border-radius: 6px;
-      padding: 6px 14px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .restart-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.4); }
-
-    /* ── Responsive ─────────────────────────── */
-    @media (max-width: 768px) {
-      nav { padding: 14px 20px; }
-      .nav-links { gap: 20px; }
-      .hero {
-        grid-template-columns: 1fr;
-        padding: 60px 20px 40px;
-        gap: 40px;
-      }
-      .hero-title { font-size: 48px; letter-spacing: -2px; }
-      .hero-right { max-width: 100%; }
-      .terminal-section { padding: 0 20px; }
-      .terminal-body { font-size: 11px; min-height: 360px; overflow-x: auto; }
+    @media(max-width:768px){
+      nav{padding:14px 20px}.nr{gap:20px}
+      .hero{grid-template-columns:1fr;padding:60px 20px 40px;gap:40px}
+      .ht{font-size:48px;letter-spacing:-2px}.hr{max-width:100%}
+      .ts{padding:0 16px}#term{font-size:13px;min-height:380px;padding:20px}
     }
   </style>
 </head>
 <body>
-
-  <!-- Nav -->
   <nav>
-    <a href="/" class="nav-logo">AMP</a>
-    <div class="nav-links">
+    <a href="/" class="nl">AMP</a>
+    <div class="nr">
       <a href="/overview">Docs</a>
       <a href="/services">Services</a>
       <a href="https://github.com/valeo-cash/amp" target="_blank">GitHub ↗</a>
     </div>
   </nav>
 
-  <!-- Hero -->
   <section class="hero">
-    <div>
-      <h1 class="hero-title">AUTONOMOUS<br>MACHINE<br>PAYMENTS</h1>
-    </div>
-    <div class="hero-right">
-      <p class="hero-desc">
-        The open protocol for persistent machine-to-machine payment channels on Solana.
-        Open a channel once, consume freely — agents and services settle net.
-      </p>
-      <div class="hero-buttons">
-        <a href="/quickstart/agent" class="btn btn-primary">Use with agents</a>
-        <a href="/quickstart/server" class="btn btn-secondary">Add to your API</a>
+    <div><h1 class="ht">AUTONOMOUS<br>MACHINE<br>PAYMENTS</h1></div>
+    <div class="hr">
+      <p class="hd">The open protocol for persistent machine-to-machine payment channels on Solana. Open a channel once, consume freely — agents and services settle net.</p>
+      <div class="hb">
+        <a href="/quickstart/agent" class="b bp">Use with agents</a>
+        <a href="/quickstart/server" class="b bs">Add to your API</a>
       </div>
     </div>
   </section>
 
-  <!-- Terminal -->
-  <section class="terminal-section">
-    <div class="terminal-card">
-      <div class="terminal-header">
-        <div class="terminal-dots">
-          <span></span><span></span><span></span>
-        </div>
-        <span class="terminal-url">amp.valeoprotocol.io</span>
-        <div style="width:52px"></div>
+  <section class="ts">
+    <div class="tc">
+      <div class="th">
+        <div class="td"><span></span><span></span><span></span></div>
+        <span class="tu">amp.valeoprotocol.io (deployed to Solana devnet)</span>
+        <button class="tr" onclick="T.restart()" title="Restart">↻</button>
       </div>
-      <div class="terminal-body" id="terminal"></div>
-      <div class="terminal-footer">
-        <button class="restart-btn" onclick="runTerminal()">Restart ↺</button>
-        <span class="terminal-footer-brand">Built by Valeo</span>
+      <div id="term" tabindex="0"></div>
+      <div class="tf">
+        <span class="thi">Use ↑↓ to select, ⏎ to confirm</span>
+        <span class="tb">Built by Valeo</span>
       </div>
     </div>
   </section>
 
-  <script>
-    const lines = [
-      { text: '$ amp pay https://api.example.com/v1/inference', cls: 'cmd', delay: 0, typing: true },
-      { text: '', delay: 400 },
-      { text: 'Discovering pricing...', delay: 300 },
-      { text: '  <span class="green">✓</span> Found /.well-known/amp.json', delay: 600 },
-      { text: '  Rate: $0.01/call  |  Token: USDC  |  Solana devnet', cls: 'dim', delay: 200 },
-      { text: '', delay: 400 },
-      { text: 'Opening channel...', delay: 300 },
-      { text: '  <span class="green">✓</span> Channel opened: <span class="dim">5Cokfvjj...Xk3R</span>', delay: 800 },
-      { text: '  Deposit: 5.00 USDC', cls: 'dim', delay: 150 },
-      { text: '  TX: <span class="dim">4cyReAHt...9mPq</span>', delay: 150 },
-      { text: '', delay: 500 },
-      { text: 'Making paid request...', delay: 300 },
-      { text: '  → AMP-Channel: 5Cokfvjj...Xk3R', cls: 'dim', delay: 150 },
-      { text: '  → AMP-Seq: 1', cls: 'dim', delay: 100 },
-      { text: '  → AMP-Sig: 3kF9xP2b...nW7v', cls: 'dim', delay: 100 },
-      { text: '  <span class="green">✓</span> 200 OK <span class="dim">(12ms)</span>', delay: 500 },
-      { text: '', delay: 200 },
-      { text: '  Response: { "model": "gpt-4", "tokens": 847, "result": "..." }', cls: 'dim', delay: 300 },
-      { text: '', delay: 500 },
-      { text: 'Channel balance: <span class="green">4.99 USDC</span> <span class="dim">(metered off-chain, no settlement yet)</span>', delay: 300 },
-      { text: '', delay: 600 },
-      { text: 'Closing channel...', delay: 300 },
-      { text: '  <span class="green">✓</span> Channel closed: <span class="dim">37GAMqKQ...bR2j</span>', delay: 700 },
-      { text: '  Refunded: <span class="green">4.99 USDC</span>', delay: 150 },
-      { text: '  Total spent: $0.01 (1 call)', cls: 'dim', delay: 150 },
-      { text: '  On-chain txns: 2 (open + close)', cls: 'dim', delay: 150 },
-    ];
+<script>
+const FLOWS = [
+  { label: 'Pay for AI inference (Solana)', steps: [
+    {t:'',d:100},
+    {t:'Enter endpoint: https://api.example.com/v1/inference',c:'dm',d:100},
+    {t:'',d:200},
+    {t:'# Open channel and pay for inference on Solana',c:'dm',d:100},
+    {t:'✔ Discover pricing ⋅ $0.01/call',c:'ok',d:400},
+    {t:'✔ Open channel on Solana',c:'ok',d:400},
+    {t:'✔ Deposit funds ⋅ 5 USDC',c:'ok',d:400},
+    {t:'✔ Call /v1/inference → 200 (success)',c:'ok',d:500},
+    {t:'',d:200},
+    {t:'Available: ',c:'',d:100,after:'4.99 USDC',ac:'ok',rest:' in channel'},
+    {t:'Spent: ',c:'',d:100,after:'0.01 USDC',ac:'ok',rest:' paid'},
+    {t:'Model: gpt-4 ⋅ 847 tokens',c:'dm',d:100},
+    {t:'',d:300},
+    {t:'Response:',c:'dm',d:100},
+    {t:'Micropayments are small financial transactions,',c:'',d:20,type:true},
+    {t:'typically under $1, conducted digitally...',c:'',d:20,type:true},
+    {t:'',d:400},
+    {t:'✔ 1 request completed',c:'ok',d:300},
+    {t:'✔ Closed channel',c:'ok',d:300},
+    {t:'✔ Spent 0.01 USDC',c:'ok',d:200},
+    {t:'✔ Refunded 4.99 USDC',c:'ok',d:200},
+  ]},
+  { label: 'Stream real-time data (Solana)', steps: [
+    {t:'',d:100},
+    {t:'Enter endpoint: wss://feed.example.com/v1/prices',c:'dm',d:100},
+    {t:'',d:200},
+    {t:'# Open channel and stream data with per-second metering',c:'dm',d:100},
+    {t:'✔ Discover pricing ⋅ $0.001/second',c:'ok',d:400},
+    {t:'✔ Open channel on Solana',c:'ok',d:400},
+    {t:'✔ Deposit funds ⋅ 10 USDC',c:'ok',d:400},
+    {t:'✔ Connect WebSocket → authenticated',c:'ok',d:500},
+    {t:'',d:200},
+    {t:'',d:50,progress:true,dur:2000,label:'Streaming'},
+    {t:'Received: 248 price updates',c:'dm',d:200},
+    {t:'Spent: ',c:'',d:100,after:'0.0124 USDC',ac:'ok',rest:' (metered off-chain)'},
+    {t:'',d:400},
+    {t:'✔ Stream closed after 12.4 seconds',c:'ok',d:300},
+    {t:'✔ Closed channel',c:'ok',d:300},
+    {t:'✔ Spent 0.0124 USDC',c:'ok',d:200},
+    {t:'✔ Refunded 9.9876 USDC',c:'ok',d:200},
+    {t:'✔ On-chain transactions: 2 (open + close)',c:'ok',d:200},
+  ]},
+  { label: 'Delegate budget to sub-agent (Solana)', steps: [
+    {t:'',d:100},
+    {t:'# Orchestrator delegates budget to a research sub-agent',c:'dm',d:100},
+    {t:'✔ Open channel ⋅ 20 USDC deposit',c:'ok',d:400},
+    {t:'✔ Delegate 5 USDC to sub-agent 7kR9...',c:'ok',d:500},
+    {t:'✔ Sub-agent calls /v1/search × 10',c:'ok',d:600},
+    {t:'✔ Sub-agent calls /v1/summarize × 3',c:'ok',d:500},
+    {t:'',d:200},
+    {t:'Orchestrator spent: 0.00 USDC (direct)',c:'dm',d:100},
+    {t:'Sub-agent spent: ',c:'',d:100,after:'0.13 USDC',ac:'ok',rest:' (delegated)'},
+    {t:'Delegate remaining: ',c:'',d:100,after:'4.87 USDC',ac:'ok'},
+    {t:'',d:400},
+    {t:'✔ Revoke delegation',c:'ok',d:300},
+    {t:'✔ Closed channel',c:'ok',d:300},
+    {t:'✔ Spent 0.13 USDC total',c:'ok',d:200},
+    {t:'✔ Refunded 19.87 USDC',c:'ok',d:200},
+  ]},
+  { label: 'Chain services autonomously (Solana)', steps: [
+    {t:'',d:100},
+    {t:'# Agent → Inference API → GPU Compute (chained)',c:'dm',d:100},
+    {t:'✔ Open channel with inference API ⋅ 10 USDC',c:'ok',d:400},
+    {t:'✔ Call /v1/generate → needs GPU compute',c:'ok',d:500},
+    {t:'✔ Inference API chains 3 USDC → GPU provider',c:'ok',d:500},
+    {t:'  └── Downstream channel opened automatically',c:'dm',d:200},
+    {t:'',d:200},
+    {t:'',d:50,progress:true,dur:2000,label:'GPU compute'},
+    {t:'Inference result: image generated (1024×1024)',c:'',d:300},
+    {t:'',d:200},
+    {t:'Upstream (Agent → Inference): 7 USDC remaining',c:'dm',d:100},
+    {t:'Downstream (Inference → GPU): settled ',c:'dm',d:100,after:'2.40 USDC',ac:'ok'},
+    {t:'  └── Refunded 0.60 USDC to inference API',c:'dm',d:100},
+    {t:'',d:400},
+    {t:'✔ Downstream closed',c:'ok',d:300},
+    {t:'✔ Upstream closed',c:'ok',d:300},
+    {t:'✔ Total spent: 5.40 USDC',c:'ok',d:200},
+    {t:'✔ Refunded 4.60 USDC',c:'ok',d:200},
+    {t:'✔ On-chain transactions: 4 (2 opens + 2 closes)',c:'ok',d:200},
+  ]}
+];
 
-    let animationId = 0;
+class Terminal {
+  constructor(el) {
+    this.el = el;
+    this.sel = 0;
+    this.state = 'IDLE'; // IDLE, MENU, PLAYING, DONE
+    this.runId = 0;
+    this.autoTimer = null;
+    this.autoIdx = 0;
+    el.addEventListener('keydown', e => this.onKey(e));
+    el.addEventListener('click', e => {
+      const mi = e.target.closest('.mi');
+      if (mi) { this.sel = +mi.dataset.i; this.confirm(); }
+    });
+  }
 
-    async function runTerminal() {
-      const id = ++animationId;
-      const el = document.getElementById('terminal');
-      el.innerHTML = '';
+  restart() {
+    this.runId++;
+    this.autoIdx = 0;
+    clearTimeout(this.autoTimer);
+    this.showMenu();
+    this.el.focus();
+  }
 
-      for (const line of lines) {
-        if (id !== animationId) return;
-        await sleep(line.delay || 200);
-        if (id !== animationId) return;
+  showMenu() {
+    this.state = 'MENU';
+    this.el.innerHTML = '';
+    this.add('$ ./amp.sh', 'cm');
+    this.add('');
+    this.add('What would you like to do?');
+    this.add('');
+    FLOWS.forEach((f, i) => {
+      const div = document.createElement('div');
+      div.className = 'mi' + (i === this.sel ? ' mi-sel' : ' mi-dim');
+      div.dataset.i = i;
+      div.textContent = (i === this.sel ? '▸ ' : '  ') + f.label;
+      this.el.appendChild(div);
+    });
+    this.startAutoPlay();
+  }
 
-        const div = document.createElement('div');
-        div.className = 'line';
-        if (line.cls) div.classList.add(line.cls);
-
-        if (line.typing && line.text) {
-          el.appendChild(div);
-          for (let i = 0; i < line.text.length; i++) {
-            if (id !== animationId) return;
-            div.textContent += line.text[i];
-            await sleep(25);
-          }
-        } else {
-          div.innerHTML = line.text || '&nbsp;';
-          el.appendChild(div);
-        }
-
-        el.scrollTop = el.scrollHeight;
+  startAutoPlay() {
+    clearTimeout(this.autoTimer);
+    this.autoTimer = setTimeout(() => {
+      if (this.state === 'MENU') {
+        this.sel = this.autoIdx % FLOWS.length;
+        this.updateMenu();
+        setTimeout(() => { if (this.state === 'MENU') this.confirm(); }, 600);
       }
+    }, 3000);
+  }
+
+  updateMenu() {
+    this.el.querySelectorAll('.mi').forEach((div, i) => {
+      div.className = 'mi' + (i === this.sel ? ' mi-sel' : ' mi-dim');
+      div.textContent = (i === this.sel ? '▸ ' : '  ') + FLOWS[i].label;
+    });
+  }
+
+  onKey(e) {
+    if (this.state !== 'MENU') return;
+    if (e.key === 'ArrowUp') { e.preventDefault(); this.sel = (this.sel - 1 + FLOWS.length) % FLOWS.length; this.updateMenu(); clearTimeout(this.autoTimer); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); this.sel = (this.sel + 1) % FLOWS.length; this.updateMenu(); clearTimeout(this.autoTimer); }
+    else if (e.key === 'Enter') { e.preventDefault(); this.confirm(); }
+  }
+
+  async confirm() {
+    if (this.state !== 'MENU') return;
+    clearTimeout(this.autoTimer);
+    this.state = 'PLAYING';
+    const id = ++this.runId;
+    const flow = FLOWS[this.sel];
+    this.el.innerHTML = '';
+    this.add('▸ ' + flow.label, 'ok');
+
+    for (const s of flow.steps) {
+      if (id !== this.runId) return;
+      await sleep(s.d || 200);
+      if (id !== this.runId) return;
+
+      if (s.progress) {
+        await this.animateProgress(s.label || 'Processing', s.dur || 2000, id);
+        continue;
+      }
+      if (s.type) {
+        const div = document.createElement('div');
+        if (s.c) div.className = s.c;
+        this.el.appendChild(div);
+        for (const ch of s.t) {
+          if (id !== this.runId) return;
+          div.textContent += ch;
+          await sleep(20);
+        }
+      } else if (s.after) {
+        const div = document.createElement('div');
+        const sp1 = document.createTextNode(s.t);
+        const sp2 = document.createElement('span');
+        sp2.className = s.ac || 'ok';
+        sp2.textContent = s.after;
+        div.appendChild(sp1);
+        div.appendChild(sp2);
+        if (s.rest) div.appendChild(document.createTextNode(s.rest));
+        this.el.appendChild(div);
+      } else {
+        this.add(s.t, s.c);
+      }
+      this.el.scrollTop = this.el.scrollHeight;
     }
 
-    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+    this.state = 'DONE';
+    this.autoIdx = this.sel + 1;
+    await sleep(2500);
+    if (id !== this.runId) return;
+    this.sel = this.autoIdx % FLOWS.length;
+    this.showMenu();
+  }
 
-    const observer = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting) {
-        observer.disconnect();
-        runTerminal();
-      }
-    }, { threshold: 0.3 });
-    observer.observe(document.getElementById('terminal'));
-  </script>
+  async animateProgress(label, dur, id) {
+    const div = document.createElement('div');
+    const full = 20;
+    this.el.appendChild(div);
+    const start = performance.now();
+    while (true) {
+      if (id !== this.runId) return;
+      const elapsed = performance.now() - start;
+      const pct = Math.min(elapsed / dur, 1);
+      const filled = Math.round(pct * full);
+      const bar = '█'.repeat(filled) + '░'.repeat(full - filled);
+      div.innerHTML = label + ': <span class="am">' + bar + '</span>' + (pct >= 1 ? ' done' : ' ' + (pct * 100).toFixed(0) + '%');
+      this.el.scrollTop = this.el.scrollHeight;
+      if (pct >= 1) break;
+      await sleep(50);
+    }
+  }
 
+  add(text, cls) {
+    const div = document.createElement('div');
+    if (cls) div.className = cls;
+    div.textContent = text || '\u00A0';
+    this.el.appendChild(div);
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+const T = new Terminal(document.getElementById('term'));
+const obs = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting) { obs.disconnect(); T.showMenu(); document.getElementById('term').focus(); }
+}, { threshold: 0.2 });
+obs.observe(document.getElementById('term'));
+</script>
 </body>
 </html>
