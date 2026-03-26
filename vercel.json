@@ -1,4 +1,4 @@
 {
-  "buildCommand": "npx vocs build && cp -f site/index.html docs/dist/index.html",
-  "outputDirectory": "docs/dist"
+  "buildCommand": "npx vocs build && echo '=== FINDING OUTPUT ===' && find . -name 'index.html' -not -path './node_modules/*' -not -path './.anchor/*' | head -20",
+  "outputDirectory": "dist"
 }
