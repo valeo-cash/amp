@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AMP — Autonomous Machine Payments</title>
   <meta name="description" content="The open protocol for persistent machine-to-machine payment channels on Solana.">
-  <link rel="icon" type="image/svg+xml" href="/docs/favicon.svg">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -14,11 +14,11 @@
 
     :root {
       --green: #00DE91;
-      --bg: #FAFAFA;
-      --text: #000000;
-      --muted: #666666;
-      --terminal-bg: #F0F0F0;
-      --terminal-border: #E0E0E0;
+      --bg: #000000;
+      --text: #FFFFFF;
+      --muted: rgba(255,255,255,0.5);
+      --terminal-bg: #111111;
+      --terminal-border: #222222;
     }
 
     body {
@@ -38,10 +38,10 @@
       align-items: center;
       justify-content: space-between;
       padding: 16px 48px;
-      background: rgba(250,250,250,0.85);
+      background: rgba(0,0,0,0.85);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(0,0,0,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
     }
     .nav-logo {
       font-family: 'Space Grotesk', sans-serif;
@@ -100,15 +100,15 @@
       cursor: pointer;
     }
     .btn-primary {
-      background: var(--text);
-      color: #fff;
-      border: 1px solid var(--text);
+      background: #FFFFFF;
+      color: #000000;
+      border: 1px solid #FFFFFF;
     }
-    .btn-primary:hover { background: #222; }
+    .btn-primary:hover { background: #e0e0e0; }
     .btn-secondary {
       background: transparent;
       color: var(--text);
-      border: 1px solid #ccc;
+      border: 1px solid rgba(255,255,255,0.3);
     }
     .btn-secondary:hover { border-color: var(--text); }
 
@@ -135,7 +135,6 @@
     .terminal-dots span {
       width: 12px; height: 12px;
       border-radius: 50%;
-      background: #ccc;
     }
     .terminal-dots span:nth-child(1) { background: #FF5F57; }
     .terminal-dots span:nth-child(2) { background: #FEBC2E; }
@@ -143,21 +142,21 @@
     .terminal-url {
       font-family: 'JetBrains Mono', monospace;
       font-size: 12px;
-      color: #999;
+      color: rgba(255,255,255,0.35);
     }
     .terminal-body {
       padding: 24px 28px 20px;
       font-family: 'JetBrains Mono', monospace;
       font-size: 13px;
       line-height: 1.7;
-      color: #333;
+      color: rgba(255,255,255,0.7);
       min-height: 420px;
       overflow-y: auto;
       position: relative;
     }
-    .terminal-body .cmd { color: #000; font-weight: 500; }
+    .terminal-body .cmd { color: #FFFFFF; font-weight: 500; }
     .terminal-body .green { color: var(--green); }
-    .terminal-body .dim { color: #999; }
+    .terminal-body .dim { color: rgba(255,255,255,0.35); }
     .terminal-body .line { opacity: 0; animation: fadeIn 0.15s forwards; }
     @keyframes fadeIn { to { opacity: 1; } }
 
@@ -173,21 +172,21 @@
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 1.5px;
-      color: #bbb;
+      color: rgba(255,255,255,0.25);
       text-transform: uppercase;
     }
     .restart-btn {
       font-family: 'JetBrains Mono', monospace;
       font-size: 12px;
-      color: #999;
+      color: rgba(255,255,255,0.4);
       background: none;
-      border: 1px solid #ddd;
+      border: 1px solid var(--terminal-border);
       border-radius: 6px;
       padding: 6px 14px;
       cursor: pointer;
       transition: all 0.15s;
     }
-    .restart-btn:hover { color: #333; border-color: #aaa; }
+    .restart-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.4); }
 
     /* ── Responsive ─────────────────────────── */
     @media (max-width: 768px) {
@@ -211,8 +210,8 @@
   <nav>
     <a href="/" class="nav-logo">AMP</a>
     <div class="nav-links">
-      <a href="/docs/overview">Docs</a>
-      <a href="/docs/services">Services</a>
+      <a href="/overview">Docs</a>
+      <a href="/services">Services</a>
       <a href="https://github.com/valeo-cash/amp" target="_blank">GitHub ↗</a>
     </div>
   </nav>
@@ -228,8 +227,8 @@
         Open a channel once, consume freely — agents and services settle net.
       </p>
       <div class="hero-buttons">
-        <a href="/docs/quickstart/agent" class="btn btn-primary">Use with agents</a>
-        <a href="/docs/quickstart/server" class="btn btn-secondary">Add to your API</a>
+        <a href="/quickstart/agent" class="btn btn-primary">Use with agents</a>
+        <a href="/quickstart/server" class="btn btn-secondary">Add to your API</a>
       </div>
     </div>
   </section>
@@ -256,16 +255,16 @@
     const lines = [
       { text: '$ amp pay https://api.example.com/v1/inference', cls: 'cmd', delay: 0, typing: true },
       { text: '', delay: 400 },
-      { text: 'Discovering pricing...', cls: 'dim', delay: 300 },
+      { text: 'Discovering pricing...', delay: 300 },
       { text: '  <span class="green">✓</span> Found /.well-known/amp.json', delay: 600 },
       { text: '  Rate: $0.01/call  |  Token: USDC  |  Solana devnet', cls: 'dim', delay: 200 },
       { text: '', delay: 400 },
-      { text: 'Opening channel...', cls: 'dim', delay: 300 },
+      { text: 'Opening channel...', delay: 300 },
       { text: '  <span class="green">✓</span> Channel opened: <span class="dim">5Cokfvjj...Xk3R</span>', delay: 800 },
       { text: '  Deposit: 5.00 USDC', cls: 'dim', delay: 150 },
       { text: '  TX: <span class="dim">4cyReAHt...9mPq</span>', delay: 150 },
       { text: '', delay: 500 },
-      { text: 'Making paid request...', cls: 'dim', delay: 300 },
+      { text: 'Making paid request...', delay: 300 },
       { text: '  → AMP-Channel: 5Cokfvjj...Xk3R', cls: 'dim', delay: 150 },
       { text: '  → AMP-Seq: 1', cls: 'dim', delay: 100 },
       { text: '  → AMP-Sig: 3kF9xP2b...nW7v', cls: 'dim', delay: 100 },
@@ -275,7 +274,7 @@
       { text: '', delay: 500 },
       { text: 'Channel balance: <span class="green">4.99 USDC</span> <span class="dim">(metered off-chain, no settlement yet)</span>', delay: 300 },
       { text: '', delay: 600 },
-      { text: 'Closing channel...', cls: 'dim', delay: 300 },
+      { text: 'Closing channel...', delay: 300 },
       { text: '  <span class="green">✓</span> Channel closed: <span class="dim">37GAMqKQ...bR2j</span>', delay: 700 },
       { text: '  Refunded: <span class="green">4.99 USDC</span>', delay: 150 },
       { text: '  Total spent: $0.01 (1 call)', cls: 'dim', delay: 150 },
