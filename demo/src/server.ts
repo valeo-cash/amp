@@ -12,9 +12,8 @@ import {
 import { Program, AnchorProvider, Wallet, BN } from "@coral-xyz/anchor";
 import {
   TOKEN_PROGRAM_ID,
-  getAssociatedTokenAddress,
-  createAssociatedTokenAccount,
-  mintTo,
+  getOrCreateAssociatedTokenAccount,
+  transfer as splTransfer,
 } from "@solana/spl-token";
 import * as nacl from "tweetnacl";
 import bs58 from "bs58";
@@ -74,10 +73,11 @@ async function loadKeys() {
   }
   MINT = new PublicKey(process.env.DEMO_MINT!);
   const conn = new Connection(RPC, "confirmed");
-  FAUCET_ATA = await getAssociatedTokenAddress(MINT, FAUCET.publicKey);
+  const faucetAtaAcct = await getOrCreateAssociatedTokenAccount(conn, FAUCET, MINT, FAUCET.publicKey);
+  FAUCET_ATA = faucetAtaAcct.address;
   RECIPIENT = Keypair.generate();
-  const recipientProvider = new AnchorProvider(conn, new Wallet(FAUCET), { commitment: "confirmed" });
-  RECIPIENT_ATA = await getAssociatedTokenAddress(MINT, RECIPIENT.publicKey);
+  const recipientAtaAcct = await getOrCreateAssociatedTokenAccount(conn, FAUCET, MINT, RECIPIENT.publicKey);
+  RECIPIENT_ATA = recipientAtaAcct.address;
 }
 
 async function main() {
@@ -161,7 +161,7 @@ async function main() {
       const demoWallet = Keypair.generate();
       send("step", { step: 1, label: `Wallet: ${trunc(demoWallet.publicKey.toBase58())}`, status: "done" });
 
-      // Step 2: Fund wallet
+      // Step 2: Fund wallet with SOL and test USDC
       send("step", { step: 2, label: "Funding from demo faucet...", status: "pending" });
       const fundTx = new Transaction().add(
         SystemProgram.transfer({
@@ -171,8 +171,12 @@ async function main() {
         })
       );
       await sendAndConfirmTransaction(conn, fundTx, [FAUCET]);
-      const demoAta = await createAssociatedTokenAccount(conn, FAUCET, MINT, demoWallet.publicKey);
-      await mintTo(conn, FAUCET, MINT, demoAta, FAUCET, depositAmount);
+      const faucetAtaAddress = process.env.DEMO_FAUCET_ATA
+        ? new PublicKey(process.env.DEMO_FAUCET_ATA)
+        : (await getOrCreateAssociatedTokenAccount(conn, FAUCET, MINT, FAUCET.publicKey)).address;
+      const demoAtaAccount = await getOrCreateAssociatedTokenAccount(conn, FAUCET, MINT, demoWallet.publicKey);
+      const demoAta = demoAtaAccount.address;
+      await splTransfer(conn, FAUCET, faucetAtaAddress, demoAta, FAUCET, depositAmount);
       send("step", { step: 2, label: `Funded: 0.01 SOL + ${(depositAmount / 1_000_000).toFixed(2)} USDC`, status: "done" });
 
       // Step 3: Discover pricing
