@@ -84,6 +84,7 @@
       </div>
       <div id="term" tabindex="0"></div>
       <div class="tf">
+        <button id="live-btn" class="tr" onclick="T.runLiveDemo()" title="Try with real Solana transactions" style="font-size:11px;padding:4px 12px;border-color:var(--g);color:var(--g);display:none">Try AMP live ⚡</button>
         <span class="thi">Use ↑↓ to select, ⏎ to confirm</span>
         <span class="tb">Built by Valeo</span>
       </div>
@@ -175,14 +176,19 @@ const FLOWS = [
   ]}
 ];
 
+const DEMO_URL = window.location.hostname === 'localhost'
+  ? 'http://localhost:3402'
+  : (window.DEMO_SERVER_URL || 'https://amp-demo.up.railway.app');
+
 class Terminal {
   constructor(el) {
     this.el = el;
     this.sel = 0;
-    this.state = 'IDLE'; // IDLE, MENU, PLAYING, DONE
+    this.state = 'IDLE';
     this.runId = 0;
     this.autoTimer = null;
     this.autoIdx = 0;
+    this.eventSource = null;
     el.addEventListener('keydown', e => this.onKey(e));
     el.addEventListener('click', e => {
       const mi = e.target.closest('.mi');
@@ -212,6 +218,8 @@ class Terminal {
       div.textContent = (i === this.sel ? '▸ ' : '  ') + f.label;
       this.el.appendChild(div);
     });
+    const lb = document.getElementById('live-btn');
+    if (lb) lb.style.display = 'inline-block';
     this.startAutoPlay();
   }
 
@@ -315,6 +323,73 @@ class Terminal {
     div.textContent = text || '\u00A0';
     this.el.appendChild(div);
   }
+
+  addHtml(html) {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    this.el.appendChild(div);
+    this.el.scrollTop = this.el.scrollHeight;
+  }
+
+  runLiveDemo() {
+    if (this.eventSource) { this.eventSource.close(); this.eventSource = null; }
+    clearTimeout(this.autoTimer);
+    this.state = 'PLAYING';
+    this.runId++;
+    this.el.innerHTML = '';
+    this.add('▸ Try AMP live (real Solana devnet transactions)', 'ok');
+    this.add('');
+    this.add('Connecting to demo server...', 'dm');
+    const lb = document.getElementById('live-btn');
+    if (lb) lb.style.display = 'none';
+
+    const es = new EventSource(DEMO_URL + '/api/demo/start');
+    this.eventSource = es;
+
+    es.addEventListener('step', (e) => {
+      const d = JSON.parse(e.data);
+      if (d.status === 'pending') {
+        this.add('  ' + d.label, 'dm');
+      } else {
+        let html = '<span class="ok">✔</span> ' + this.esc(d.label);
+        if (d.tx) {
+          html += ' <a href="' + d.explorer + '" target="_blank" style="color:var(--g);text-decoration:underline;font-size:12px">' + d.tx.slice(0,8) + '... ↗</a>';
+        }
+        this.addHtml(html);
+        if (d.response) {
+          this.add('  ' + JSON.stringify(d.response).slice(0,120) + '...', 'dm');
+        }
+      }
+    });
+
+    es.addEventListener('complete', (e) => {
+      const d = JSON.parse(e.data);
+      this.add('');
+      this.addHtml('<span class="ok">✔</span> Demo complete');
+      this.add('');
+      this.add(d.totalCalls + ' API calls, ' + d.totalTxns + ' on-chain txns, $' + d.totalSpent + ' USDC spent');
+      this.add('Refunded: $' + d.totalRefunded + ' USDC', 'dm');
+      this.add('');
+      this.add('All transactions are real — click the links to verify on Solana Explorer.', 'dm');
+      es.close();
+      this.eventSource = null;
+      this.state = 'DONE';
+      setTimeout(() => { if (this.state === 'DONE') { this.sel = 0; this.showMenu(); } }, 5000);
+    });
+
+    es.addEventListener('error', (e) => {
+      if (es.readyState === EventSource.CLOSED) return;
+      this.add('');
+      this.add('Demo server unavailable. Run locally:', 'dm');
+      this.add('  cd demo && npm install && npm start', 'dm');
+      es.close();
+      this.eventSource = null;
+      this.state = 'DONE';
+      setTimeout(() => { this.sel = 0; this.showMenu(); }, 4000);
+    });
+  }
+
+  esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
