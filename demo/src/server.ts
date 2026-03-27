@@ -22,7 +22,7 @@ import * as path from "path";
 
 const PORT = parseInt(process.env.PORT || "3402", 10);
 const RPC = process.env.SOLANA_RPC || "https://api.devnet.solana.com";
-const IDL = require(path.join(__dirname, "..", "..", "target", "idl", "amp_channel.json"));
+const IDL = require(path.join(__dirname, "..", "idl", "amp_channel.json"));
 const DEVNET_PROGRAM_ID = "2KQCaQ9j8YtewZ4QjmDfnsVANZXLBcPSYFhAj2eUNaPP";
 const PROGRAM_ID = new PublicKey(process.env.AMP_PROGRAM_ID || DEVNET_PROGRAM_ID);
 // Override IDL address for devnet

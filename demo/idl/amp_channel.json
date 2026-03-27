@@ -1,0 +1,584 @@
+{
+  "address": "2d1B2PmumwYWuR82AbXAARTL1nrn8N7Vu9bLXTXUDmVA",
+  "metadata": {
+    "name": "amp_channel",
+    "version": "0.2.0",
+    "spec": "0.1.0"
+  },
+  "instructions": [
+    {
+      "name": "open_channel",
+      "discriminator": [
+        91,
+        45,
+        253,
+        71,
+        140,
+        166,
+        107,
+        109
+      ],
+      "accounts": [
+        {
+          "name": "funder",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "recipient"
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "channel_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  109,
+                  112,
+                  45,
+                  99,
+                  104,
+                  97,
+                  110,
+                  110,
+                  101,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "funder"
+              },
+              {
+                "kind": "account",
+                "path": "recipient"
+              },
+              {
+                "kind": "arg",
+                "path": "nonce"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  109,
+                  112,
+                  45,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "channel_state"
+              }
+            ]
+          }
+        },
+        {
+          "name": "funder_token_account",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "deposit",
+          "type": "u64"
+        },
+        {
+          "name": "rate_limit",
+          "type": "u64"
+        },
+        {
+          "name": "settle_interval",
+          "type": "i64"
+        },
+        {
+          "name": "nonce",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "top_up",
+      "discriminator": [
+        236,
+        225,
+        96,
+        9,
+        60,
+        106,
+        77,
+        208
+      ],
+      "accounts": [
+        {
+          "name": "funder",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "channel_state",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "funder_token_account",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "settle",
+      "discriminator": [
+        175,
+        42,
+        185,
+        87,
+        144,
+        131,
+        102,
+        212
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "channel_state",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "recipient_token_account",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "close_channel",
+      "discriminator": [
+        0,
+        104,
+        36,
+        1,
+        66,
+        0,
+        103,
+        157
+      ],
+      "accounts": [
+        {
+          "name": "closer",
+          "signer": true
+        },
+        {
+          "name": "funder",
+          "writable": true
+        },
+        {
+          "name": "recipient"
+        },
+        {
+          "name": "channel_state",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "funder_token_account",
+          "writable": true
+        },
+        {
+          "name": "recipient_token_account",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "parent_channel_state",
+          "writable": true,
+          "optional": true
+        }
+      ],
+      "args": [
+        {
+          "name": "final_settle_amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "set_delegate",
+      "discriminator": [
+        242,
+        30,
+        46,
+        76,
+        108,
+        235,
+        128,
+        181
+      ],
+      "accounts": [
+        {
+          "name": "funder",
+          "signer": true
+        },
+        {
+          "name": "channel_state",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "delegate_pubkey",
+          "type": "pubkey"
+        },
+        {
+          "name": "limit",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "chain_channel",
+      "discriminator": [
+        150,
+        189,
+        117,
+        185,
+        229,
+        204,
+        230,
+        228
+      ],
+      "accounts": [
+        {
+          "name": "upstream_recipient",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "upstream_channel",
+          "writable": true
+        },
+        {
+          "name": "upstream_vault",
+          "writable": true
+        },
+        {
+          "name": "downstream_recipient"
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "downstream_channel",
+          "writable": true
+        },
+        {
+          "name": "downstream_vault",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "rate_limit",
+          "type": "u64"
+        },
+        {
+          "name": "settle_interval",
+          "type": "i64"
+        },
+        {
+          "name": "nonce",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "ChannelState",
+      "discriminator": [
+        74,
+        132,
+        141,
+        196,
+        64,
+        52,
+        83,
+        136
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "ChannelNotActive",
+      "msg": "Channel is not active"
+    },
+    {
+      "code": 6001,
+      "name": "InsufficientBalance",
+      "msg": "Channel balance is insufficient"
+    },
+    {
+      "code": 6002,
+      "name": "SettleTooEarly",
+      "msg": "Settlement attempted before interval elapsed"
+    },
+    {
+      "code": 6003,
+      "name": "RateLimitExceeded",
+      "msg": "Settlement amount exceeds rate limit"
+    },
+    {
+      "code": 6004,
+      "name": "DepositTooLow",
+      "msg": "Deposit below minimum"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidSettleInterval",
+      "msg": "Invalid settle interval"
+    },
+    {
+      "code": 6006,
+      "name": "InvalidRateLimit",
+      "msg": "Rate limit must be greater than zero"
+    },
+    {
+      "code": 6007,
+      "name": "Unauthorized",
+      "msg": "Unauthorized: signer is not funder, recipient, or stratum authority"
+    },
+    {
+      "code": 6008,
+      "name": "DelegateLimitExceeded",
+      "msg": "Delegate limit exceeds channel balance"
+    },
+    {
+      "code": 6009,
+      "name": "DelegateOverLimit",
+      "msg": "Delegate consumption exceeds limit"
+    },
+    {
+      "code": 6010,
+      "name": "MaxChainDepthExceeded",
+      "msg": "Chain depth exceeds maximum"
+    },
+    {
+      "code": 6011,
+      "name": "HasActiveChildren",
+      "msg": "Cannot close channel with active child channels"
+    },
+    {
+      "code": 6012,
+      "name": "ChainAmountExceedsBalance",
+      "msg": "Chain amount exceeds available balance"
+    },
+    {
+      "code": 6013,
+      "name": "NotUpstreamRecipient",
+      "msg": "Only the upstream recipient can create downstream channels"
+    },
+    {
+      "code": 6014,
+      "name": "InvalidMeteringProof",
+      "msg": "Invalid metering proof"
+    },
+    {
+      "code": 6015,
+      "name": "ZeroAmount",
+      "msg": "Amount must be greater than zero"
+    },
+    {
+      "code": 6016,
+      "name": "Overflow",
+      "msg": "Arithmetic overflow"
+    }
+  ],
+  "types": [
+    {
+      "name": "ChannelState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "funder",
+            "type": "pubkey"
+          },
+          {
+            "name": "recipient",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "balance",
+            "type": "u64"
+          },
+          {
+            "name": "totalDeposited",
+            "type": "u64"
+          },
+          {
+            "name": "totalConsumed",
+            "type": "u64"
+          },
+          {
+            "name": "rateLimit",
+            "type": "u64"
+          },
+          {
+            "name": "settleInterval",
+            "type": "i64"
+          },
+          {
+            "name": "lastSettleTs",
+            "type": "i64"
+          },
+          {
+            "name": "nonce",
+            "type": "u64"
+          },
+          {
+            "name": "status",
+            "type": "u8"
+          },
+          {
+            "name": "createdAt",
+            "type": "i64"
+          },
+          {
+            "name": "delegate",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "delegateLimit",
+            "type": "u64"
+          },
+          {
+            "name": "delegateConsumed",
+            "type": "u64"
+          },
+          {
+            "name": "stratumEnabled",
+            "type": "bool"
+          },
+          {
+            "name": "stratumCycle",
+            "type": "i64"
+          },
+          {
+            "name": "stratumAuthority",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "parentChannel",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "childChannels",
+            "type": "u8"
+          },
+          {
+            "name": "maxChainDepth",
+            "type": "u8"
+          },
+          {
+            "name": "chainDepth",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}
